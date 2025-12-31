@@ -13,7 +13,7 @@ const colors = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 
 const neutrals = ['slate', 'gray', 'zinc', 'neutral', 'stone']
 
 const userAvatar = computed(() => ({
-  fallback: user.value?.name?.[0]?.toUpperCase() || user.value?.email?.[0]?.toUpperCase() || 'U'
+  text: user.value?.name?.[0]?.toUpperCase() || user.value?.email?.[0]?.toUpperCase() || 'U'
 }))
 
 const items = computed<DropdownMenuItem[][]>(() => ([[{

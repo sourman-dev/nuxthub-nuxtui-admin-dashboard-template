@@ -1,0 +1,1685 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: app/components/**/*, app/utils/index.ts, nuxt.config.ts, package.json
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/
+  components/
+    customers/
+      CustomersAddModal.vue
+      CustomersDeleteModal.vue
+    home/
+      HomeChart.client.vue
+      HomeChart.server.vue
+      HomeDateRangePicker.vue
+      HomePeriodSelect.vue
+      HomeSales.vue
+      HomeStats.vue
+    inbox/
+      InboxList.vue
+      InboxMail.vue
+    settings/
+      SettingsMembersList.vue
+    DashboardTeamsMenu.vue
+    DashboardTeamsMenuSource.vue
+    DashboardUserMenu.vue
+    DashboardUserMenuSource.vue
+    NotificationsSlideover.vue
+  utils/
+    index.ts
+nuxt.config.ts
+package.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/components/customers/CustomersAddModal.vue">
+<script setup lang="ts">
+import * as z from 'zod'
+import type { FormSubmitEvent } from '@nuxt/ui'
+
+const schema = z.object({
+  name: z.string().min(2, 'Too short'),
+  email: z.string().email('Invalid email')
+})
+const open = ref(false)
+
+type Schema = z.output<typeof schema>
+
+const state = reactive<Partial<Schema>>({
+  name: undefined,
+  email: undefined
+})
+
+const toast = useToast()
+async function onSubmit(event: FormSubmitEvent<Schema>) {
+  toast.add({ title: 'Success', description: `New customer ${event.data.name} added`, color: 'success' })
+  open.value = false
+}
+</script>
+
+<template>
+  <UModal v-model:open="open" title="New customer" description="Add a new customer to the database">
+    <UButton label="New customer" icon="i-lucide-plus" />
+
+    <template #body>
+      <UForm
+        :schema="schema"
+        :state="state"
+        class="space-y-4"
+        @submit="onSubmit"
+      >
+        <UFormField label="Name" placeholder="John Doe" name="name">
+          <UInput v-model="state.name" class="w-full" />
+        </UFormField>
+        <UFormField label="Email" placeholder="john.doe@example.com" name="email">
+          <UInput v-model="state.email" class="w-full" />
+        </UFormField>
+        <div class="flex justify-end gap-2">
+          <UButton
+            label="Cancel"
+            color="neutral"
+            variant="subtle"
+            @click="open = false"
+          />
+          <UButton
+            label="Create"
+            color="primary"
+            variant="solid"
+            type="submit"
+          />
+        </div>
+      </UForm>
+    </template>
+  </UModal>
+</template>
+</file>
+
+<file path="app/components/customers/CustomersDeleteModal.vue">
+<script setup lang="ts">
+withDefaults(defineProps<{
+  count?: number
+}>(), {
+  count: 0
+})
+
+const open = ref(false)
+
+async function onSubmit() {
+  await new Promise(resolve => setTimeout(resolve, 1000))
+  open.value = false
+}
+</script>
+
+<template>
+  <UModal
+    v-model:open="open"
+    :title="`Delete ${count} customer${count > 1 ? 's' : ''}`"
+    :description="`Are you sure, this action cannot be undone.`"
+  >
+    <slot />
+
+    <template #body>
+      <div class="flex justify-end gap-2">
+        <UButton
+          label="Cancel"
+          color="neutral"
+          variant="subtle"
+          @click="open = false"
+        />
+        <UButton
+          label="Delete"
+          color="error"
+          variant="solid"
+          loading-auto
+          @click="onSubmit"
+        />
+      </div>
+    </template>
+  </UModal>
+</template>
+</file>
+
+<file path="app/components/home/HomeChart.client.vue">
+<script setup lang="ts">
+import { eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, format } from 'date-fns'
+import { VisXYContainer, VisLine, VisAxis, VisArea, VisCrosshair, VisTooltip } from '@unovis/vue'
+import type { Period, Range } from '~/types'
+
+const cardRef = useTemplateRef<HTMLElement | null>('cardRef')
+
+const props = defineProps<{
+  period: Period
+  range: Range
+}>()
+
+type DataRecord = {
+  date: Date
+  amount: number
+}
+
+const { width } = useElementSize(cardRef)
+
+const data = ref<DataRecord[]>([])
+
+watch([() => props.period, () => props.range], () => {
+  const dates = ({
+    daily: eachDayOfInterval,
+    weekly: eachWeekOfInterval,
+    monthly: eachMonthOfInterval
+  } as Record<Period, typeof eachDayOfInterval>)[props.period](props.range)
+
+  const min = 1000
+  const max = 10000
+
+  data.value = dates.map(date => ({ date, amount: Math.floor(Math.random() * (max - min + 1)) + min }))
+}, { immediate: true })
+
+const x = (_: DataRecord, i: number) => i
+const y = (d: DataRecord) => d.amount
+
+const total = computed(() => data.value.reduce((acc: number, { amount }) => acc + amount, 0))
+
+const formatNumber = new Intl.NumberFormat('en', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format
+
+const formatDate = (date: Date): string => {
+  return ({
+    daily: format(date, 'd MMM'),
+    weekly: format(date, 'd MMM'),
+    monthly: format(date, 'MMM yyy')
+  })[props.period]
+}
+
+const xTicks = (i: number) => {
+  if (i === 0 || i === data.value.length - 1 || !data.value[i]) {
+    return ''
+  }
+
+  return formatDate(data.value[i].date)
+}
+
+const template = (d: DataRecord) => `${formatDate(d.date)}: ${formatNumber(d.amount)}`
+</script>
+
+<template>
+  <UCard ref="cardRef" :ui="{ root: 'overflow-visible', body: '!px-0 !pt-0 !pb-3' }">
+    <template #header>
+      <div>
+        <p class="text-xs text-muted uppercase mb-1.5">
+          Revenue
+        </p>
+        <p class="text-3xl text-highlighted font-semibold">
+          {{ formatNumber(total) }}
+        </p>
+      </div>
+    </template>
+
+    <VisXYContainer
+      :data="data"
+      :padding="{ top: 40 }"
+      class="h-96"
+      :width="width"
+    >
+      <VisLine
+        :x="x"
+        :y="y"
+        color="var(--ui-primary)"
+      />
+      <VisArea
+        :x="x"
+        :y="y"
+        color="var(--ui-primary)"
+        :opacity="0.1"
+      />
+
+      <VisAxis
+        type="x"
+        :x="x"
+        :tick-format="xTicks"
+      />
+
+      <VisCrosshair
+        color="var(--ui-primary)"
+        :template="template"
+      />
+
+      <VisTooltip />
+    </VisXYContainer>
+  </UCard>
+</template>
+
+<style scoped>
+.unovis-xy-container {
+  --vis-crosshair-line-stroke-color: var(--ui-primary);
+  --vis-crosshair-circle-stroke-color: var(--ui-bg);
+
+  --vis-axis-grid-color: var(--ui-border);
+  --vis-axis-tick-color: var(--ui-border);
+  --vis-axis-tick-label-color: var(--ui-text-dimmed);
+
+  --vis-tooltip-background-color: var(--ui-bg);
+  --vis-tooltip-border-color: var(--ui-border);
+  --vis-tooltip-text-color: var(--ui-text-highlighted);
+}
+</style>
+</file>
+
+<file path="app/components/home/HomeChart.server.vue">
+<template>
+  <UCard class="shrink-0" :ui="{ body: '!px-0 !pt-0 !pb-3' }">
+    <template #header>
+      <div>
+        <p class="text-xs text-muted uppercase mb-1.5">
+          Revenue
+        </p>
+        <p class="text-3xl text-highlighted font-semibold">
+          ---
+        </p>
+      </div>
+    </template>
+
+    <div class="h-96" />
+  </UCard>
+</template>
+</file>
+
+<file path="app/components/home/HomeDateRangePicker.vue">
+<script setup lang="ts">
+import { DateFormatter, getLocalTimeZone, CalendarDate, today } from '@internationalized/date'
+import type { Range } from '~/types'
+
+const df = new DateFormatter('en-US', {
+  dateStyle: 'medium'
+})
+
+const selected = defineModel<Range>({ required: true })
+
+const ranges = [
+  { label: 'Last 7 days', days: 7 },
+  { label: 'Last 14 days', days: 14 },
+  { label: 'Last 30 days', days: 30 },
+  { label: 'Last 3 months', months: 3 },
+  { label: 'Last 6 months', months: 6 },
+  { label: 'Last year', years: 1 }
+]
+
+const toCalendarDate = (date: Date) => {
+  return new CalendarDate(
+    date.getFullYear(),
+    date.getMonth() + 1,
+    date.getDate()
+  )
+}
+
+const calendarRange = computed({
+  get: () => ({
+    start: selected.value.start ? toCalendarDate(selected.value.start) : undefined,
+    end: selected.value.end ? toCalendarDate(selected.value.end) : undefined
+  }),
+  set: (newValue: { start: CalendarDate | null, end: CalendarDate | null }) => {
+    selected.value = {
+      start: newValue.start ? newValue.start.toDate(getLocalTimeZone()) : new Date(),
+      end: newValue.end ? newValue.end.toDate(getLocalTimeZone()) : new Date()
+    }
+  }
+})
+
+const isRangeSelected = (range: { days?: number, months?: number, years?: number }) => {
+  if (!selected.value.start || !selected.value.end) return false
+
+  const currentDate = today(getLocalTimeZone())
+  let startDate = currentDate.copy()
+
+  if (range.days) {
+    startDate = startDate.subtract({ days: range.days })
+  } else if (range.months) {
+    startDate = startDate.subtract({ months: range.months })
+  } else if (range.years) {
+    startDate = startDate.subtract({ years: range.years })
+  }
+
+  const selectedStart = toCalendarDate(selected.value.start)
+  const selectedEnd = toCalendarDate(selected.value.end)
+
+  return selectedStart.compare(startDate) === 0 && selectedEnd.compare(currentDate) === 0
+}
+
+const selectRange = (range: { days?: number, months?: number, years?: number }) => {
+  const endDate = today(getLocalTimeZone())
+  let startDate = endDate.copy()
+
+  if (range.days) {
+    startDate = startDate.subtract({ days: range.days })
+  } else if (range.months) {
+    startDate = startDate.subtract({ months: range.months })
+  } else if (range.years) {
+    startDate = startDate.subtract({ years: range.years })
+  }
+
+  selected.value = {
+    start: startDate.toDate(getLocalTimeZone()),
+    end: endDate.toDate(getLocalTimeZone())
+  }
+}
+</script>
+
+<template>
+  <UPopover :content="{ align: 'start' }" :modal="true">
+    <UButton
+      color="neutral"
+      variant="ghost"
+      icon="i-lucide-calendar"
+      class="data-[state=open]:bg-elevated group"
+    >
+      <span class="truncate">
+        <template v-if="selected.start">
+          <template v-if="selected.end">
+            {{ df.format(selected.start) }} - {{ df.format(selected.end) }}
+          </template>
+          <template v-else>
+            {{ df.format(selected.start) }}
+          </template>
+        </template>
+        <template v-else>
+          Pick a date
+        </template>
+      </span>
+
+      <template #trailing>
+        <UIcon name="i-lucide-chevron-down" class="shrink-0 text-dimmed size-5 group-data-[state=open]:rotate-180 transition-transform duration-200" />
+      </template>
+    </UButton>
+
+    <template #content>
+      <div class="flex items-stretch sm:divide-x divide-default">
+        <div class="hidden sm:flex flex-col justify-center">
+          <UButton
+            v-for="(range, index) in ranges"
+            :key="index"
+            :label="range.label"
+            color="neutral"
+            variant="ghost"
+            class="rounded-none px-4"
+            :class="[isRangeSelected(range) ? 'bg-elevated' : 'hover:bg-elevated/50']"
+            truncate
+            @click="selectRange(range)"
+          />
+        </div>
+
+        <UCalendar
+          v-model="calendarRange"
+          class="p-2"
+          :number-of-months="2"
+          range
+        />
+      </div>
+    </template>
+  </UPopover>
+</template>
+</file>
+
+<file path="app/components/home/HomePeriodSelect.vue">
+<script setup lang="ts">
+import { eachDayOfInterval } from 'date-fns'
+import type { Period, Range } from '~/types'
+
+const model = defineModel<Period>({ required: true })
+
+const props = defineProps<{
+  range: Range
+}>()
+
+const days = computed(() => eachDayOfInterval(props.range))
+
+const periods = computed<Period[]>(() => {
+  if (days.value.length <= 8) {
+    return [
+      'daily'
+    ]
+  }
+
+  if (days.value.length <= 31) {
+    return [
+      'daily',
+      'weekly'
+    ]
+  }
+
+  return [
+    'weekly',
+    'monthly'
+  ]
+})
+
+// Ensure the model value is always a valid period
+watch(periods, () => {
+  if (!periods.value.includes(model.value)) {
+    model.value = periods.value[0]!
+  }
+})
+</script>
+
+<template>
+  <USelect
+    v-model="model"
+    :items="periods"
+    variant="ghost"
+    class="data-[state=open]:bg-elevated"
+    :ui="{ value: 'capitalize', itemLabel: 'capitalize', trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200' }"
+  />
+</template>
+</file>
+
+<file path="app/components/home/HomeSales.vue">
+<script setup lang="ts">
+import { h, resolveComponent } from 'vue'
+import type { TableColumn } from '@nuxt/ui'
+import type { Period, Range, Sale } from '~/types'
+
+const props = defineProps<{
+  period: Period
+  range: Range
+}>()
+
+const UBadge = resolveComponent('UBadge')
+
+const sampleEmails = [
+  'james.anderson@example.com',
+  'mia.white@example.com',
+  'william.brown@example.com',
+  'emma.davis@example.com',
+  'ethan.harris@example.com'
+]
+
+const { data } = await useAsyncData('sales', async () => {
+  const sales: Sale[] = []
+  const currentDate = new Date()
+
+  for (let i = 0; i < 5; i++) {
+    const hoursAgo = randomInt(0, 48)
+    const date = new Date(currentDate.getTime() - hoursAgo * 3600000)
+
+    sales.push({
+      id: (4600 - i).toString(),
+      date: date.toISOString(),
+      status: randomFrom(['paid', 'failed', 'refunded']),
+      email: randomFrom(sampleEmails),
+      amount: randomInt(100, 1000)
+    })
+  }
+
+  return sales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+}, {
+  watch: [() => props.period, () => props.range],
+  default: () => []
+})
+
+const columns: TableColumn<Sale>[] = [
+  {
+    accessorKey: 'id',
+    header: 'ID',
+    cell: ({ row }) => `#${row.getValue('id')}`
+  },
+  {
+    accessorKey: 'date',
+    header: 'Date',
+    cell: ({ row }) => {
+      return new Date(row.getValue('date')).toLocaleString('en-US', {
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      })
+    }
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    cell: ({ row }) => {
+      const color = {
+        paid: 'success' as const,
+        failed: 'error' as const,
+        refunded: 'neutral' as const
+      }[row.getValue('status') as string]
+
+      return h(UBadge, { class: 'capitalize', variant: 'subtle', color }, () =>
+        row.getValue('status')
+      )
+    }
+  },
+  {
+    accessorKey: 'email',
+    header: 'Email'
+  },
+  {
+    accessorKey: 'amount',
+    header: () => h('div', { class: 'text-right' }, 'Amount'),
+    cell: ({ row }) => {
+      const amount = Number.parseFloat(row.getValue('amount'))
+
+      const formatted = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'EUR'
+      }).format(amount)
+
+      return h('div', { class: 'text-right font-medium' }, formatted)
+    }
+  }
+]
+</script>
+
+<template>
+  <UTable
+    :data="data"
+    :columns="columns"
+    class="shrink-0"
+    :ui="{
+      base: 'table-fixed border-separate border-spacing-0',
+      thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
+      tbody: '[&>tr]:last:[&>td]:border-b-0',
+      th: 'first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
+      td: 'border-b border-default'
+    }"
+  />
+</template>
+</file>
+
+<file path="app/components/home/HomeStats.vue">
+<script setup lang="ts">
+import type { Period, Range, Stat } from '~/types'
+
+const props = defineProps<{
+  period: Period
+  range: Range
+}>()
+
+function formatCurrency(value: number): string {
+  return value.toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0
+  })
+}
+
+const baseStats = [{
+  title: 'Customers',
+  icon: 'i-lucide-users',
+  minValue: 400,
+  maxValue: 1000,
+  minVariation: -15,
+  maxVariation: 25
+}, {
+  title: 'Conversions',
+  icon: 'i-lucide-chart-pie',
+  minValue: 1000,
+  maxValue: 2000,
+  minVariation: -10,
+  maxVariation: 20
+}, {
+  title: 'Revenue',
+  icon: 'i-lucide-circle-dollar-sign',
+  minValue: 200000,
+  maxValue: 500000,
+  minVariation: -20,
+  maxVariation: 30,
+  formatter: formatCurrency
+}, {
+  title: 'Orders',
+  icon: 'i-lucide-shopping-cart',
+  minValue: 100,
+  maxValue: 300,
+  minVariation: -5,
+  maxVariation: 15
+}]
+
+const { data: stats } = await useAsyncData<Stat[]>('stats', async () => {
+  return baseStats.map((stat) => {
+    const value = randomInt(stat.minValue, stat.maxValue)
+    const variation = randomInt(stat.minVariation, stat.maxVariation)
+
+    return {
+      title: stat.title,
+      icon: stat.icon,
+      value: stat.formatter ? stat.formatter(value) : value,
+      variation
+    }
+  })
+}, {
+  watch: [() => props.period, () => props.range],
+  default: () => []
+})
+</script>
+
+<template>
+  <UPageGrid class="lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-px">
+    <UPageCard
+      v-for="(stat, index) in stats"
+      :key="index"
+      :icon="stat.icon"
+      :title="stat.title"
+      to="/customers"
+      variant="subtle"
+      :ui="{
+        container: 'gap-y-1.5',
+        wrapper: 'items-start',
+        leading: 'p-2.5 rounded-full bg-primary/10 ring ring-inset ring-primary/25 flex-col',
+        title: 'font-normal text-muted text-xs uppercase'
+      }"
+      class="lg:rounded-none first:rounded-l-lg last:rounded-r-lg hover:z-1"
+    >
+      <div class="flex items-center gap-2">
+        <span class="text-2xl font-semibold text-highlighted">
+          {{ stat.value }}
+        </span>
+
+        <UBadge
+          :color="stat.variation > 0 ? 'success' : 'error'"
+          variant="subtle"
+          class="text-xs"
+        >
+          {{ stat.variation > 0 ? '+' : '' }}{{ stat.variation }}%
+        </UBadge>
+      </div>
+    </UPageCard>
+  </UPageGrid>
+</template>
+</file>
+
+<file path="app/components/inbox/InboxList.vue">
+<script setup lang="ts">
+import { format, isToday } from 'date-fns'
+import type { Mail } from '~/types'
+
+const props = defineProps<{
+  mails: Mail[]
+}>()
+
+const mailsRefs = ref<Element[]>([])
+
+const selectedMail = defineModel<Mail | null>()
+
+watch(selectedMail, () => {
+  if (!selectedMail.value) {
+    return
+  }
+  const ref = mailsRefs.value[selectedMail.value.id]
+  if (ref) {
+    ref.scrollIntoView({ block: 'nearest' })
+  }
+})
+
+defineShortcuts({
+  arrowdown: () => {
+    const index = props.mails.findIndex(mail => mail.id === selectedMail.value?.id)
+
+    if (index === -1) {
+      selectedMail.value = props.mails[0]
+    } else if (index < props.mails.length - 1) {
+      selectedMail.value = props.mails[index + 1]
+    }
+  },
+  arrowup: () => {
+    const index = props.mails.findIndex(mail => mail.id === selectedMail.value?.id)
+
+    if (index === -1) {
+      selectedMail.value = props.mails[props.mails.length - 1]
+    } else if (index > 0) {
+      selectedMail.value = props.mails[index - 1]
+    }
+  }
+})
+</script>
+
+<template>
+  <div class="overflow-y-auto divide-y divide-default">
+    <div
+      v-for="(mail, index) in mails"
+      :key="index"
+      :ref="el => { mailsRefs[mail.id] = el as Element }"
+    >
+      <div
+        class="p-4 sm:px-6 text-sm cursor-pointer border-l-2 transition-colors"
+        :class="[
+          mail.unread ? 'text-highlighted' : 'text-toned',
+          selectedMail && selectedMail.id === mail.id
+            ? 'border-primary bg-primary/10'
+            : 'border-(--ui-bg) hover:border-primary hover:bg-primary/5'
+        ]"
+        @click="selectedMail = mail"
+      >
+        <div class="flex items-center justify-between" :class="[mail.unread && 'font-semibold']">
+          <div class="flex items-center gap-3">
+            {{ mail.from.name }}
+
+            <UChip v-if="mail.unread" />
+          </div>
+
+          <span>{{ isToday(new Date(mail.date)) ? format(new Date(mail.date), 'HH:mm') : format(new Date(mail.date), 'dd MMM') }}</span>
+        </div>
+        <p class="truncate" :class="[mail.unread && 'font-semibold']">
+          {{ mail.subject }}
+        </p>
+        <p class="text-dimmed line-clamp-1">
+          {{ mail.body }}
+        </p>
+      </div>
+    </div>
+  </div>
+</template>
+</file>
+
+<file path="app/components/inbox/InboxMail.vue">
+<script setup lang="ts">
+import { format } from 'date-fns'
+import type { Mail } from '~/types'
+
+defineProps<{
+  mail: Mail
+}>()
+
+const emits = defineEmits(['close'])
+
+const dropdownItems = [[{
+  label: 'Mark as unread',
+  icon: 'i-lucide-check-circle'
+}, {
+  label: 'Mark as important',
+  icon: 'i-lucide-triangle-alert'
+}], [{
+  label: 'Star thread',
+  icon: 'i-lucide-star'
+}, {
+  label: 'Mute thread',
+  icon: 'i-lucide-circle-pause'
+}]]
+
+const toast = useToast()
+
+const reply = ref('')
+const loading = ref(false)
+
+function onSubmit() {
+  loading.value = true
+
+  setTimeout(() => {
+    reply.value = ''
+
+    toast.add({
+      title: 'Email sent',
+      description: 'Your email has been sent successfully',
+      icon: 'i-lucide-check-circle',
+      color: 'success'
+    })
+
+    loading.value = false
+  }, 1000)
+}
+</script>
+
+<template>
+  <UDashboardPanel id="inbox-2">
+    <UDashboardNavbar :title="mail.subject" :toggle="false">
+      <template #leading>
+        <UButton
+          icon="i-lucide-x"
+          color="neutral"
+          variant="ghost"
+          class="-ms-1.5"
+          @click="emits('close')"
+        />
+      </template>
+
+      <template #right>
+        <UTooltip text="Archive">
+          <UButton
+            icon="i-lucide-inbox"
+            color="neutral"
+            variant="ghost"
+          />
+        </UTooltip>
+
+        <UTooltip text="Reply">
+          <UButton icon="i-lucide-reply" color="neutral" variant="ghost" />
+        </UTooltip>
+
+        <UDropdownMenu :items="dropdownItems">
+          <UButton
+            icon="i-lucide-ellipsis-vertical"
+            color="neutral"
+            variant="ghost"
+          />
+        </UDropdownMenu>
+      </template>
+    </UDashboardNavbar>
+
+    <div class="flex flex-col sm:flex-row justify-between gap-1 p-4 sm:px-6 border-b border-default">
+      <div class="flex items-start gap-4 sm:my-1.5">
+        <UAvatar
+          v-bind="mail.from.avatar"
+          :alt="mail.from.name"
+          size="3xl"
+        />
+
+        <div class="min-w-0">
+          <p class="font-semibold text-highlighted">
+            {{ mail.from.name }}
+          </p>
+          <p class="text-muted">
+            {{ mail.from.email }}
+          </p>
+        </div>
+      </div>
+
+      <p class="max-sm:pl-16 text-muted text-sm sm:mt-2">
+        {{ format(new Date(mail.date), 'dd MMM HH:mm') }}
+      </p>
+    </div>
+
+    <div class="flex-1 p-4 sm:p-6 overflow-y-auto">
+      <p class="whitespace-pre-wrap">
+        {{ mail.body }}
+      </p>
+    </div>
+
+    <div class="pb-4 px-4 sm:px-6 shrink-0">
+      <UCard variant="subtle" class="mt-auto" :ui="{ header: 'flex items-center gap-1.5 text-dimmed' }">
+        <template #header>
+          <UIcon name="i-lucide-reply" class="size-5" />
+
+          <span class="text-sm truncate">
+            Reply to {{ mail.from.name }} ({{ mail.from.email }})
+          </span>
+        </template>
+
+        <form @submit.prevent="onSubmit">
+          <UTextarea
+            v-model="reply"
+            color="neutral"
+            variant="none"
+            required
+            autoresize
+            placeholder="Write your reply..."
+            :rows="4"
+            :disabled="loading"
+            class="w-full"
+            :ui="{ base: 'p-0 resize-none' }"
+          />
+
+          <div class="flex items-center justify-between">
+            <UTooltip text="Attach file">
+              <UButton
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-paperclip"
+              />
+            </UTooltip>
+
+            <div class="flex items-center justify-end gap-2">
+              <UButton
+                color="neutral"
+                variant="ghost"
+                label="Save draft"
+              />
+              <UButton
+                type="submit"
+                color="neutral"
+                :loading="loading"
+                label="Send"
+                icon="i-lucide-send"
+              />
+            </div>
+          </div>
+        </form>
+      </UCard>
+    </div>
+  </UDashboardPanel>
+</template>
+</file>
+
+<file path="app/components/settings/SettingsMembersList.vue">
+<script setup lang="ts">
+import type { DropdownMenuItem } from '@nuxt/ui'
+import type { Member } from '~/types'
+
+defineProps<{
+  members: Member[]
+}>()
+
+const items = [{
+  label: 'Edit member',
+  onSelect: () => console.log('Edit member')
+}, {
+  label: 'Remove member',
+  color: 'error' as const,
+  onSelect: () => console.log('Remove member')
+}] satisfies DropdownMenuItem[]
+</script>
+
+<template>
+  <ul role="list" class="divide-y divide-default">
+    <li
+      v-for="(member, index) in members"
+      :key="index"
+      class="flex items-center justify-between gap-3 py-3 px-4 sm:px-6"
+    >
+      <div class="flex items-center gap-3 min-w-0">
+        <UAvatar
+          v-bind="member.avatar"
+          size="md"
+        />
+
+        <div class="text-sm min-w-0">
+          <p class="text-highlighted font-medium truncate">
+            {{ member.name }}
+          </p>
+          <p class="text-muted truncate">
+            {{ member.username }}
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <USelect
+          :model-value="member.role"
+          :items="['member', 'owner']"
+          color="neutral"
+          :ui="{ value: 'capitalize', item: 'capitalize' }"
+        />
+
+        <UDropdownMenu :items="items" :content="{ align: 'end' }">
+          <UButton
+            icon="i-lucide-ellipsis-vertical"
+            color="neutral"
+            variant="ghost"
+          />
+        </UDropdownMenu>
+      </div>
+    </li>
+  </ul>
+</template>
+</file>
+
+<file path="app/components/DashboardTeamsMenuSource.vue">
+<script setup lang="ts">
+import type { DropdownMenuItem } from '@nuxt/ui'
+
+defineProps<{
+  collapsed?: boolean
+}>()
+
+const teams = ref([{
+  label: 'Nuxt',
+  avatar: {
+    src: 'https://github.com/nuxt.png',
+    alt: 'Nuxt'
+  }
+}, {
+  label: 'NuxtHub',
+  avatar: {
+    src: 'https://github.com/nuxt-hub.png',
+    alt: 'NuxtHub'
+  }
+}, {
+  label: 'NuxtLabs',
+  avatar: {
+    src: 'https://github.com/nuxtlabs.png',
+    alt: 'NuxtLabs'
+  }
+}])
+const selectedTeam = ref(teams.value[0])
+
+const items = computed<DropdownMenuItem[][]>(() => {
+  return [teams.value.map(team => ({
+    ...team,
+    onSelect() {
+      selectedTeam.value = team
+    }
+  })), [{
+    label: 'Create team',
+    icon: 'i-lucide-circle-plus'
+  }, {
+    label: 'Manage teams',
+    icon: 'i-lucide-cog'
+  }]]
+})
+</script>
+
+<template>
+  <UDropdownMenu
+    :items="items"
+    :content="{ align: 'center', collisionPadding: 12 }"
+    :ui="{ content: collapsed ? 'w-40' : 'w-(--reka-dropdown-menu-trigger-width)' }"
+  >
+    <UButton
+      v-bind="{
+        ...selectedTeam,
+        label: collapsed ? undefined : selectedTeam?.label,
+        trailingIcon: collapsed ? undefined : 'i-lucide-chevrons-up-down'
+      }"
+      color="neutral"
+      variant="ghost"
+      block
+      :square="collapsed"
+      class="data-[state=open]:bg-elevated"
+      :class="[!collapsed && 'py-2']"
+      :ui="{
+        trailingIcon: 'text-dimmed'
+      }"
+    />
+  </UDropdownMenu>
+</template>
+</file>
+
+<file path="app/components/DashboardUserMenuSource.vue">
+<script setup lang="ts">
+import type { DropdownMenuItem } from '@nuxt/ui'
+
+defineProps<{
+  collapsed?: boolean
+}>()
+
+const colorMode = useColorMode()
+const appConfig = useAppConfig()
+
+const colors = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose']
+const neutrals = ['slate', 'gray', 'zinc', 'neutral', 'stone']
+
+const user = ref({
+  name: 'Benjamin Canac',
+  avatar: {
+    src: 'https://github.com/benjamincanac.png',
+    alt: 'Benjamin Canac'
+  }
+})
+
+const items = computed<DropdownMenuItem[][]>(() => ([[{
+  type: 'label',
+  label: user.value.name,
+  avatar: user.value.avatar
+}], [{
+  label: 'Profile',
+  icon: 'i-lucide-user'
+}, {
+  label: 'Billing',
+  icon: 'i-lucide-credit-card'
+}, {
+  label: 'Settings',
+  icon: 'i-lucide-settings',
+  to: '/settings'
+}], [{
+  label: 'Theme',
+  icon: 'i-lucide-palette',
+  children: [{
+    label: 'Primary',
+    slot: 'chip',
+    chip: appConfig.ui.colors.primary,
+    content: {
+      align: 'center',
+      collisionPadding: 16
+    },
+    children: colors.map(color => ({
+      label: color,
+      chip: color,
+      slot: 'chip',
+      checked: appConfig.ui.colors.primary === color,
+      type: 'checkbox',
+      onSelect: (e) => {
+        e.preventDefault()
+
+        appConfig.ui.colors.primary = color
+      }
+    }))
+  }, {
+    label: 'Neutral',
+    slot: 'chip',
+    chip: appConfig.ui.colors.neutral === 'neutral' ? 'old-neutral' : appConfig.ui.colors.neutral,
+    content: {
+      align: 'end',
+      collisionPadding: 16
+    },
+    children: neutrals.map(color => ({
+      label: color,
+      chip: color === 'neutral' ? 'old-neutral' : color,
+      slot: 'chip',
+      type: 'checkbox',
+      checked: appConfig.ui.colors.neutral === color,
+      onSelect: (e) => {
+        e.preventDefault()
+
+        appConfig.ui.colors.neutral = color
+      }
+    }))
+  }]
+}, {
+  label: 'Appearance',
+  icon: 'i-lucide-sun-moon',
+  children: [{
+    label: 'Light',
+    icon: 'i-lucide-sun',
+    type: 'checkbox',
+    checked: colorMode.value === 'light',
+    onSelect(e: Event) {
+      e.preventDefault()
+
+      colorMode.preference = 'light'
+    }
+  }, {
+    label: 'Dark',
+    icon: 'i-lucide-moon',
+    type: 'checkbox',
+    checked: colorMode.value === 'dark',
+    onUpdateChecked(checked: boolean) {
+      if (checked) {
+        colorMode.preference = 'dark'
+      }
+    },
+    onSelect(e: Event) {
+      e.preventDefault()
+    }
+  }]
+}], [{
+  label: 'Templates',
+  icon: 'i-lucide-layout-template',
+  children: [{
+    label: 'Starter',
+    to: 'https://starter-template.nuxt.dev/'
+  }, {
+    label: 'Landing',
+    to: 'https://landing-template.nuxt.dev/'
+  }, {
+    label: 'Docs',
+    to: 'https://docs-template.nuxt.dev/'
+  }, {
+    label: 'SaaS',
+    to: 'https://saas-template.nuxt.dev/'
+  }, {
+    label: 'Dashboard',
+    to: 'https://dashboard-template.nuxt.dev/',
+    color: 'primary',
+    checked: true,
+    type: 'checkbox'
+  }, {
+    label: 'Chat',
+    to: 'https://chat-template.nuxt.dev/'
+  }, {
+    label: 'Portfolio',
+    to: 'https://portfolio-template.nuxt.dev/'
+  }, {
+    label: 'Changelog',
+    to: 'https://changelog-template.nuxt.dev/'
+  }]
+}], [{
+  label: 'Documentation',
+  icon: 'i-lucide-book-open',
+  to: 'https://ui.nuxt.com/docs/getting-started/installation/nuxt',
+  target: '_blank'
+}, {
+  label: 'GitHub repository',
+  icon: 'i-simple-icons-github',
+  to: 'https://github.com/nuxt-ui-templates/dashboard',
+  target: '_blank'
+}, {
+  label: 'Log out',
+  icon: 'i-lucide-log-out'
+}]]))
+</script>
+
+<template>
+  <UDropdownMenu
+    :items="items"
+    :content="{ align: 'center', collisionPadding: 12 }"
+    :ui="{ content: collapsed ? 'w-48' : 'w-(--reka-dropdown-menu-trigger-width)' }"
+  >
+    <UButton
+      v-bind="{
+        ...user,
+        label: collapsed ? undefined : user?.name,
+        trailingIcon: collapsed ? undefined : 'i-lucide-chevrons-up-down'
+      }"
+      color="neutral"
+      variant="ghost"
+      block
+      :square="collapsed"
+      class="data-[state=open]:bg-elevated"
+      :ui="{
+        trailingIcon: 'text-dimmed'
+      }"
+    />
+
+    <template #chip-leading="{ item }">
+      <div class="inline-flex items-center justify-center shrink-0 size-5">
+        <span
+          class="rounded-full ring ring-bg bg-(--chip-light) dark:bg-(--chip-dark) size-2"
+          :style="{
+            '--chip-light': `var(--color-${(item as any).chip}-500)`,
+            '--chip-dark': `var(--color-${(item as any).chip}-400)`
+          }"
+        />
+      </div>
+    </template>
+  </UDropdownMenu>
+</template>
+</file>
+
+<file path="app/utils/index.ts">
+export function randomInt(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+export function randomFrom<T>(array: T[]): T {
+  return array[Math.floor(Math.random() * array.length)]!
+}
+</file>
+
+<file path="app/components/DashboardTeamsMenu.vue">
+<script setup lang="ts">
+import type { DropdownMenuItem } from '@nuxt/ui'
+
+defineProps<{
+  collapsed?: boolean
+}>()
+
+const teams = ref([{
+  label: 'Nuxt',
+  avatar: {
+    src: 'https://github.com/nuxt.png',
+    alt: 'Nuxt'
+  }
+}, {
+  label: 'NuxtHub',
+  avatar: {
+    src: 'https://github.com/nuxt-hub.png',
+    alt: 'NuxtHub'
+  }
+}, {
+  label: 'NuxtLabs',
+  avatar: {
+    src: 'https://github.com/nuxtlabs.png',
+    alt: 'NuxtLabs'
+  }
+}])
+const selectedTeam = ref(teams.value[0])
+
+const items = computed<DropdownMenuItem[][]>(() => {
+  return [teams.value.map(team => ({
+    ...team,
+    onSelect() {
+      selectedTeam.value = team
+    }
+  })), [{
+    label: 'Create team',
+    icon: 'i-lucide-circle-plus'
+  }, {
+    label: 'Manage teams',
+    icon: 'i-lucide-cog'
+  }]]
+})
+</script>
+
+<template>
+  <UDropdownMenu
+    :items="items"
+    :content="{ align: 'center', collisionPadding: 12 }"
+    :ui="{ content: collapsed ? 'w-40' : 'w-(--reka-dropdown-menu-trigger-width)' }"
+  >
+    <UButton
+      v-bind="{
+        ...selectedTeam,
+        label: collapsed ? undefined : selectedTeam?.label,
+        trailingIcon: collapsed ? undefined : 'i-lucide-chevrons-up-down'
+      }"
+      color="neutral"
+      variant="ghost"
+      block
+      :square="collapsed"
+      class="data-[state=open]:bg-elevated"
+      :class="[!collapsed && 'py-2']"
+      :ui="{
+        trailingIcon: 'text-dimmed'
+      }"
+    />
+  </UDropdownMenu>
+</template>
+</file>
+
+<file path="app/components/DashboardUserMenu.vue">
+<script setup lang="ts">
+import type { DropdownMenuItem } from '@nuxt/ui'
+
+defineProps<{
+  collapsed?: boolean
+}>()
+
+const { user, clear } = useUserSession()
+const colorMode = useColorMode()
+const appConfig = useAppConfig()
+
+const colors = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose']
+const neutrals = ['slate', 'gray', 'zinc', 'neutral', 'stone']
+
+const userAvatar = computed(() => ({
+  fallback: user.value?.name?.[0]?.toUpperCase() || user.value?.email?.[0]?.toUpperCase() || 'U'
+}))
+
+const items = computed<DropdownMenuItem[][]>(() => ([[{
+  type: 'label',
+  label: user.value?.name || user.value?.email || 'Guest',
+  avatar: userAvatar.value
+}], [{
+  label: 'Settings',
+  icon: 'i-lucide-settings',
+  to: '/settings'
+}], [{
+  label: 'Theme',
+  icon: 'i-lucide-palette',
+  children: [{
+    label: 'Primary',
+    slot: 'chip',
+    chip: appConfig.ui.colors.primary,
+    content: {
+      align: 'center',
+      collisionPadding: 16
+    },
+    children: colors.map(color => ({
+      label: color,
+      chip: color,
+      slot: 'chip',
+      checked: appConfig.ui.colors.primary === color,
+      type: 'checkbox',
+      onSelect: (e) => {
+        e.preventDefault()
+
+        appConfig.ui.colors.primary = color
+      }
+    }))
+  }, {
+    label: 'Neutral',
+    slot: 'chip',
+    chip: appConfig.ui.colors.neutral === 'neutral' ? 'old-neutral' : appConfig.ui.colors.neutral,
+    content: {
+      align: 'end',
+      collisionPadding: 16
+    },
+    children: neutrals.map(color => ({
+      label: color,
+      chip: color === 'neutral' ? 'old-neutral' : color,
+      slot: 'chip',
+      type: 'checkbox',
+      checked: appConfig.ui.colors.neutral === color,
+      onSelect: (e) => {
+        e.preventDefault()
+
+        appConfig.ui.colors.neutral = color
+      }
+    }))
+  }]
+}, {
+  label: 'Appearance',
+  icon: 'i-lucide-sun-moon',
+  children: [{
+    label: 'Light',
+    icon: 'i-lucide-sun',
+    type: 'checkbox',
+    checked: colorMode.value === 'light',
+    onSelect(e: Event) {
+      e.preventDefault()
+
+      colorMode.preference = 'light'
+    }
+  }, {
+    label: 'Dark',
+    icon: 'i-lucide-moon',
+    type: 'checkbox',
+    checked: colorMode.value === 'dark',
+    onUpdateChecked(checked: boolean) {
+      if (checked) {
+        colorMode.preference = 'dark'
+      }
+    },
+    onSelect(e: Event) {
+      e.preventDefault()
+    }
+  }]
+}], [{
+  label: 'Log out',
+  icon: 'i-lucide-log-out',
+  onSelect: async () => {
+    await $fetch('/api/auth/logout', { method: 'POST' })
+    await clear()
+    navigateTo('/login')
+  }
+}]]))
+</script>
+
+<template>
+  <UDropdownMenu
+    :items="items"
+    :content="{ align: 'center', collisionPadding: 12 }"
+    :ui="{ content: collapsed ? 'w-48' : 'w-(--reka-dropdown-menu-trigger-width)' }"
+  >
+    <UButton
+      v-bind="{
+        avatar: userAvatar,
+        label: collapsed ? undefined : (user?.name || user?.email),
+        trailingIcon: collapsed ? undefined : 'i-lucide-chevrons-up-down'
+      }"
+      color="neutral"
+      variant="ghost"
+      block
+      :square="collapsed"
+      class="data-[state=open]:bg-elevated"
+      :ui="{
+        trailingIcon: 'text-dimmed'
+      }"
+    />
+
+    <template #chip-leading="{ item }">
+      <div class="inline-flex items-center justify-center shrink-0 size-5">
+        <span
+          class="rounded-full ring ring-bg bg-(--chip-light) dark:bg-(--chip-dark) size-2"
+          :style="{
+            '--chip-light': `var(--color-${(item as any).chip}-500)`,
+            '--chip-dark': `var(--color-${(item as any).chip}-400)`
+          }"
+        />
+      </div>
+    </template>
+  </UDropdownMenu>
+</template>
+</file>
+
+<file path="app/components/NotificationsSlideover.vue">
+<script setup lang="ts">
+import { formatTimeAgo } from '@vueuse/core'
+import type { Notification } from '~/types'
+
+const { isNotificationsSlideoverOpen } = useDashboard()
+
+const { data: notifications } = await useFetch<Notification[]>('/api/notifications')
+</script>
+
+<template>
+  <USlideover
+    v-model:open="isNotificationsSlideoverOpen"
+    title="Notifications"
+  >
+    <template #body>
+      <NuxtLink
+        v-for="notification in notifications"
+        :key="notification.id"
+        :to="`/inbox?id=${notification.id}`"
+        class="px-3 py-2.5 rounded-md hover:bg-elevated/50 flex items-center gap-3 relative -mx-3 first:-mt-3 last:-mb-3"
+      >
+        <UChip
+          color="error"
+          :show="!!notification.unread"
+          inset
+        >
+          <UAvatar
+            v-bind="notification.sender.avatar"
+            :alt="notification.sender.name"
+            size="md"
+          />
+        </UChip>
+
+        <div class="text-sm flex-1">
+          <p class="flex items-center justify-between">
+            <span class="text-highlighted font-medium">{{ notification.sender.name }}</span>
+
+            <time
+              :datetime="notification.date"
+              class="text-muted text-xs"
+              v-text="formatTimeAgo(new Date(notification.date))"
+            />
+          </p>
+
+          <p class="text-dimmed">
+            {{ notification.body }}
+          </p>
+        </div>
+      </NuxtLink>
+    </template>
+  </USlideover>
+</template>
+</file>
+
+<file path="nuxt.config.ts">
+export default defineNuxtConfig({
+  modules: [
+    '@nuxt/ui',
+    '@nuxt/eslint',
+    '@nuxthub/core',
+    'nuxt-auth-utils',
+    '@pinia/nuxt',
+    '@pinia/colada-nuxt',
+    '@vueuse/nuxt'
+  ],
+  devtools: {
+    enabled: true
+  },
+  css: ['~/assets/main.css'],
+  future: { compatibilityVersion: 4 },
+  compatibilityDate: '2025-08-07',
+  hub: {
+    db: 'sqlite'
+  },
+  nitro: {
+    experimental: {
+      tasks: true
+    }
+  },
+  // Auto-import composables from subdirectories
+  imports: {
+    dirs: ['composables/**']
+  },
+  // Development config
+  eslint: {
+    config: {
+      stylistic: {
+        quotes: 'single',
+        commaDangle: 'never'
+      }
+    }
+  }
+})
+</file>
+
+<file path="package.json">
+{
+  "private": true,
+  "scripts": {
+    "dev": "nuxi dev",
+    "build": "nuxi build",
+    "preview": "npx nuxthub preview",
+    "db:generate": "drizzle-kit generate",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxi typecheck"
+  },
+  "dependencies": {
+    "@iconify-json/lucide": "^1.2.77",
+    "@iconify-json/simple-icons": "^1.2.61",
+    "@libsql/client": "^0.15.15",
+    "@nuxt/ui": "^4.2.1",
+    "@nuxthub/core": "^0.10.0",
+    "@pinia/colada": "^0.18.0",
+    "@pinia/colada-nuxt": "^0.2.4",
+    "@pinia/nuxt": "^0.11.3",
+    "@unovis/ts": "^1.6.2",
+    "@unovis/vue": "^1.6.2",
+    "@vueuse/nuxt": "^14.1.0",
+    "date-fns": "^4.1.0",
+    "drizzle-kit": "^0.31.7",
+    "drizzle-orm": "0.44.7",
+    "nuxt": "^4.2.1",
+    "nuxt-auth-utils": "^0.5.25",
+    "pinia": "^3.0.4",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "^3.1.1",
+    "@nuxt/eslint": "^1.11.0",
+    "baseline-browser-mapping": "^2.8.32",
+    "eslint": "^9.39.1",
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.1.6"
+  },
+  "packageManager": "pnpm@10.24.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@tailwindcss/oxide",
+      "better-sqlite3",
+      "esbuild",
+      "libpq",
+      "sharp",
+      "unrs-resolver",
+      "vue-demi",
+      "workerd"
+    ]
+  }
+}
+</file>
+
+</files>

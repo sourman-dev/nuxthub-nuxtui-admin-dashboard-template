@@ -1,49 +1,23 @@
-import type { Member } from '~/types/mocks'
+import type { Member } from '~/types'
 
 export const useMockMembers = () => {
-  const loading = ref(false)
-  const error = ref<Error | null>(null)
+  const data = ref<Member[]>([])
+  const status = ref<'idle' | 'pending' | 'success' | 'error'>('pending')
 
-  const fetchMembers = async (options?: {
-    search?: string
-    role?: 'member' | 'owner'
-  }): Promise<Member[]> => {
-    loading.value = true
-    error.value = null
-
+  // Auto-fetch on mount
+  onMounted(async () => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 200))
-
       const response = await import('~/data/members.json')
-      let members = response.default as Member[]
-
-      // Client-side search by name or email
-      if (options?.search) {
-        const searchLower = options.search.toLowerCase()
-        members = members.filter(m =>
-          m.name.toLowerCase().includes(searchLower) ||
-          m.email.toLowerCase().includes(searchLower)
-        )
-      }
-
-      // Client-side role filter
-      if (options?.role) {
-        members = members.filter(m => m.role === options.role)
-      }
-
-      return members
+      data.value = response.default as Member[]
+      status.value = 'success'
     } catch (err) {
-      error.value = err as Error
-      return []
-    } finally {
-      loading.value = false
+      console.error('Failed to load members:', err)
+      status.value = 'error'
     }
-  }
+  })
 
   return {
-    loading: readonly(loading),
-    error: readonly(error),
-    fetchMembers
+    data,
+    status
   }
 }

@@ -1,7 +1,7 @@
 import type { AvatarProps } from '@nuxt/ui'
 
 export type UserStatus = 'subscribed' | 'unsubscribed' | 'bounced'
-export type SaleStatus = 'paid' | 'failed' | 'refunded'
+export type SaleStatus = 'paid' | 'failed' | 'refunded' | 'completed' | 'pending' | 'cancelled'
 
 export interface User {
   id: number
@@ -22,10 +22,13 @@ export interface Mail {
 }
 
 export interface Member {
+  id?: number
   name: string
   username: string
+  email?: string
   role: 'member' | 'owner'
   avatar: AvatarProps
+  date?: string
 }
 
 export interface Stat {
@@ -47,9 +50,15 @@ export interface Sale {
 export interface Notification {
   id: number
   unread?: boolean
-  sender: User
-  body: string
-  date: string
+  sender?: User
+  body?: string
+  date?: string
+  title?: string
+  description?: string
+  icon?: string
+  avatar?: AvatarProps
+  color?: string
+  click?: () => void
 }
 
 export type Period = 'daily' | 'weekly' | 'monthly'

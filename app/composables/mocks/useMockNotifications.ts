@@ -1,4 +1,4 @@
-import type { Notification } from '~/types/mocks'
+import type { Notification } from '~/types'
 
 export const useMockNotifications = () => {
   const loading = ref(false)

@@ -1,9 +1,9 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
 
-export const todos = sqliteTable('todos', {
-  id: integer('id').primaryKey(),
-  userId: integer('user_id').notNull(), // GitHub Id
-  title: text('title').notNull(),
-  completed: integer('completed').notNull().default(0),
+export const users = sqliteTable('users', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  email: text('email').notNull().unique(),
+  hashedPassword: text('hashed_password').notNull(),
+  name: text('name'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull()
 })

@@ -1,4 +1,4 @@
-import type { Sale } from '~/types/mocks'
+import type { Sale } from '~/types'
 
 export const useMockSales = () => {
   const loading = ref(false)
