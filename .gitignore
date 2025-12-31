@@ -14,3 +14,11 @@ db.sqlite-*
 .wrangler
 .env*.local
 .backup/
+
+# Claude Code configuration and artifacts
+.claude/
+docs/
+plans/
+CLAUDE.md
+repomix-output.xml
+.repomixignore
