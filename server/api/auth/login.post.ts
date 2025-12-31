@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const isValid = await verifyPassword(user.hashedPassword, (useRuntimeConfig().passwordSalt || '') + password)
+  const isValid = await useVerifyPassword(password, user.hashedPassword)
 
   if (!isValid) {
     throw createError({

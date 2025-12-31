@@ -97,9 +97,9 @@ useSeoMeta({
 
         <UButton
           type="submit"
-          block
           size="lg"
           :loading="loading"
+          class="w-full"
         >
           Sign in
         </UButton>

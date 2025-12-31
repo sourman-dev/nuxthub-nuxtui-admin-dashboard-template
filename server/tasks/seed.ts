@@ -7,15 +7,12 @@ export default defineTask({
     description: 'Seed database with initial admin user if no users exist'
   },
   async run() {
-    const config = useRuntimeConfig()
-    const salt = config.passwordSalt || ''
-
     // Delete existing users
     await db.delete(schema.users)
     console.log('Existing users deleted.')
 
     // Create admin user
-    const hashedPassword = await hashPassword(salt + '!password!')
+    const hashedPassword = await useHashPassword('!password!')
 
     await db.insert(users).values({
       email: 'admin@local.dev',
