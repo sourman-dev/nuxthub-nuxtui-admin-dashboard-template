@@ -5,7 +5,8 @@ export default defineNuxtConfig({
     '@nuxthub/core',
     'nuxt-auth-utils',
     '@pinia/nuxt',
-    '@pinia/colada-nuxt'
+    '@pinia/colada-nuxt',
+    '@vueuse/nuxt'
   ],
   devtools: {
     enabled: true

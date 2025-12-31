@@ -4,7 +4,6 @@ import type { Notification } from '~/types'
 
 const { isNotificationsSlideoverOpen } = useDashboard()
 
-// TODO: Phase 4 - Connect to real API endpoint
 const { data: notifications } = await useFetch<Notification[]>('/api/notifications')
 </script>
 
