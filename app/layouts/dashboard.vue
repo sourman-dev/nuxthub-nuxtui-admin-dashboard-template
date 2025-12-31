@@ -65,14 +65,6 @@ const links = [[{
       open.value = false
     }
   }]
-}], [{
-  label: 'Demo Features',
-  icon: 'i-lucide-flask',
-  to: '/features/demo/todos',
-  shortcut: 'g-t',
-  onSelect: () => {
-    open.value = false
-  }
 }]] satisfies NavigationMenuItem[][]
 
 const groups = computed(() => [{
@@ -115,14 +107,6 @@ const groups = computed(() => [{
           orientation="vertical"
           tooltip
           popover
-        />
-
-        <UNavigationMenu
-          :collapsed="collapsed"
-          :items="links[1]"
-          orientation="vertical"
-          tooltip
-          class="mt-auto"
         />
       </template>
 
