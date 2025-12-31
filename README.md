@@ -1,16 +1,26 @@
 # NuxtHub Nuxt UI Admin Dashboard Template
 
-Modern, production-ready admin dashboard template built on **Nuxt 4**, **NuxtHub**, and **Nuxt UI**. Features SSR, authentication, database operations, and optimistic UI patterns with zero-config Cloudflare deployment.
+Modern, production-ready admin dashboard template built on **Nuxt 4**, **NuxtHub**, and **Nuxt UI**. Features complete dashboard UI, authentication, database operations, and zero-config Cloudflare deployment.
 
-[![Deploy with NuxtHub](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fatinux%2Fatidone%2Ftree%2Fnuxthub-v1&env=NUXT_OAUTH_GITHUB_CLIENT_ID,NUXT_OAUTH_GITHUB_CLIENT_SECRET,NUXT_SESSION_PASSWORD&envDescription=GitHub%20OAuth%20App%20client%20ID%20and%20secret.%20Generate%20a%20random%20session%20password%20min%2032%20chars%20using%20%60openssl%20rand%20-hex%2032%60.&project-name=todos&repository-name=todos&demo-title=Atidone&demo-description=A%20demonstration%20using%20Nuxt%20with%20server-side%20rendering%2C%20authentication%20and%20database%20querying%20using%20Turso%20with%20Drizzle%20ORM&demo-url=https%3A%2F%2Ftodos.nuxt.dev%2F&demo-image=https%3A%2F%2Ftodos.nuxt.dev%2Fsocial-image.png&products=%255B%257B%2522type%2522%253A%2522integration%2522%252C%2522protocol%2522%253A%2522storage%2522%252C%2522productSlug%2522%253A%2522database%2522%252C%2522integrationSlug%2522%253A%2522tursocloud%2522%257D%255D)
+[![Deploy with NuxtHub](https://hub.nuxt.com/button.svg)](https://hub.nuxt.com/new)
 
 ## ✨ Features
+
+### Dashboard UI
+- 📊 **Dashboard Page** - Charts, stats, sales analytics
+- 👥 **Customers Page** - Data table with search, filters, pagination
+- 📧 **Inbox Page** - Mail list with detail view
+- ⚙️ **Settings Pages** - Members, notifications, preferences
+- 🎨 **16 UI Components** - Modals, slideouts, menus, charts
+- ⌨️ **Keyboard Shortcuts** - `g-h` (home), `g-c` (customers), `g-i` (inbox), `g-s` (settings), `n` (notifications)
+- 📱 **Responsive Design** - Mobile, tablet, desktop layouts
 
 ### Authentication & Security
 - 🔐 Email/password authentication using [nuxt-auth-utils](https://github.com/atinux/nuxt-auth-utils)
 - 🛡️ Encrypted session cookies with CSRF protection
 - 🔒 Route-level protection middleware
-- 🔑 Secure password hashing
+- 🔑 Secure password hashing with bcrypt + salt
+- 🆔 UUID primary keys for enhanced security
 
 ### Database & ORM
 - 💾 [Turso](https://turso.tech) (SQLite/LibSQL) via [NuxtHub DB](https://hub.nuxt.com/docs/storage/database)
@@ -18,36 +28,31 @@ Modern, production-ready admin dashboard template built on **Nuxt 4**, **NuxtHub
 - 🔄 [Automatic migrations](https://hub.nuxt.com/docs/features/database#database-migrations) (dev + production)
 - 🎨 [Drizzle Studio](https://orm.drizzle.team/drizzle-studio/overview/) in [Nuxt DevTools](https://devtools.nuxt.com)
 
+### Mock Data Layer
+- 📋 **5 Mock Composables** - Notifications, members, mails, customers, sales
+- 🔄 **Loading & Error States** - Built-in state management
+- 🔍 **Search & Filter** - Client-side data operations
+- 📄 **Pagination** - Configurable page sizes
+
 ### UI & UX
 - 🎯 [Nuxt UI v4](https://ui.nuxt.com) component library
-- 📱 Responsive dashboard layout
-- ⌨️ Keyboard shortcuts (g-h: home, n: notifications)
+- 📱 Responsive dashboard layout with collapsible sidebar
 - 🎪 Slide-over panels and modals
-- 🎨 Customizable theme (Tailwind)
-
-### State Management
-- 📦 [Pinia](https://pinia.vuejs.org/) for global state
-- 🚀 [Pinia Colada](https://pinia-colada.esm.dev) for server state & caching
-- ⚡ Optimistic UI updates
-
-## 📚 Documentation
-
-- [Project Overview & PDR](./docs/project-overview-pdr.md)
-- [Codebase Summary](./docs/codebase-summary.md)
-- [Code Standards](./docs/code-standards.md)
-- [System Architecture](./docs/system-architecture.md)
+- 🎨 Customizable theme (Tailwind CSS)
 
 ## 🏗️ Architecture Overview
 
 ```
 Frontend (Nuxt 4 + Vue 3)
 ├── Nuxt UI Components
-├── Pinia + Pinia Colada (State)
+├── Dashboard Layout
+├── Mock Data Composables
 └── SSR + CSR Rendering
 
 Backend (Nitro Server)
 ├── File-based API Routes
 ├── Drizzle ORM
+├── Password Utilities
 └── nuxt-auth-utils (Sessions)
 
 Database (SQLite/LibSQL)
@@ -63,34 +68,41 @@ Deployment (Cloudflare)
 
 ```
 app/                    # Frontend application
-├── components/         # Vue components
+├── components/         # Dashboard UI components
+│   ├── Dashboard*.vue  # Charts, stats, menus
+│   ├── Customers*.vue  # Customer modals
+│   ├── Inbox*.vue      # Mail components
+│   ├── Settings*.vue   # Settings modals
+│   └── Notifications*  # Notification components
 ├── composables/        # Shared composables
+│   ├── mocks/          # Mock data composables
+│   └── useDashboard.ts # Dashboard state
 ├── layouts/            # Layout components
+│   └── dashboard.vue   # Main dashboard layout
 ├── pages/              # File-based routes
-└── middleware/         # Route middleware
+│   ├── index.vue       # Dashboard home
+│   ├── customers.vue   # Customers management
+│   ├── inbox.vue       # Mail inbox
+│   ├── login.vue       # Login page
+│   └── settings/       # Settings pages
+├── middleware/         # Route middleware
+│   └── require-auth.ts # Auth protection
+├── data/               # Mock JSON data
+└── types/              # TypeScript definitions
 
 server/                 # Backend (Nitro)
 ├── api/                # API endpoints
-│   ├── auth/           # Login/logout
-│   └── todos/          # CRUD operations
+│   └── auth/           # Login/logout
 ├── db/                 # Database schema
-│   ├── schema.ts       # Drizzle schema
+│   ├── schema.ts       # Drizzle schema (users)
 │   └── migrations/     # Migration files
+├── utils/              # Server utilities
+│   └── password.ts     # Password hashing
 └── tasks/              # Background tasks
+    └── seed.ts         # Database seeding
 
-shared/                 # Shared types
-└── types/              # TypeScript definitions
-
-docs/                   # Documentation
-plans/                  # Planning & reports
 public/                 # Static assets
 ```
-
-## 🎬 Live Demo
-
-https://todos.nuxt.dev
-
-> For Passkeys (WebAuthn) example, see [todo-passkeys](https://github.com/atinux/todo-passkeys)
 
 ## 🚀 Quick Start
 
@@ -100,38 +112,52 @@ https://todos.nuxt.dev
 
 ### Installation
 
-1. **Install dependencies**:
+1. **Use this template**:
+   - Click "Use this template" button on GitHub
+   - Or clone: `git clone https://github.com/sourman-dev/nuxthub-nuxtui-admin-dashboard-template.git`
+
+2. **Install dependencies**:
 ```bash
 pnpm install
 ```
 
-2. **Configure environment variables**:
+3. **Configure environment variables**:
 
 Copy `.env.example` to `.env`:
 ```bash
 cp .env.example .env
 ```
 
-Generate a session password (min 32 characters):
+Generate a session password and password salt:
 ```bash
+# Session password (min 32 characters)
 openssl rand -hex 32
+
+# Password salt (min 16 characters)
+openssl rand -hex 16
 ```
 
 Update `.env`:
 ```bash
 NUXT_SESSION_PASSWORD="your-generated-session-password"
+NUXT_PASSWORD_SALT="your-generated-password-salt"
 ```
 
-> **Note**: GitHub OAuth is optional. Template uses email/password auth by default.
-
-3. **Seed the database**:
+4. **Seed the database**:
 ```bash
+pnpm dev
+# In another terminal:
 npx nitro task db:seed
 ```
 
 Default admin user:
 - Email: `admin@local.dev`
 - Password: `!password!`
+
+5. **Access the dashboard**:
+   - Open http://localhost:3000
+   - Login with admin credentials
+   - Explore dashboard, customers, inbox, settings pages
 
 ## 💻 Development
 
@@ -173,6 +199,72 @@ Access DevTools by clicking the Nuxt icon in bottom-right of browser.
    pnpm db:generate
    ```
 4. **Test locally** before deployment
+
+## 🎨 Customization
+
+### Adding New Pages
+
+1. Create page in `app/pages/`:
+```vue
+<!-- app/pages/my-page.vue -->
+<script setup lang="ts">
+definePageMeta({
+  middleware: 'require-auth',
+  layout: 'dashboard'
+})
+</script>
+
+<template>
+  <div>Your content</div>
+</template>
+```
+
+2. Add navigation in `app/layouts/dashboard.vue`:
+```typescript
+links: [
+  { label: 'My Page', to: '/my-page', icon: 'i-lucide-file' }
+]
+```
+
+### Creating Mock Data
+
+1. Add JSON data in `app/data/`:
+```json
+// app/data/my-data.json
+[
+  { "id": 1, "name": "Item 1" }
+]
+```
+
+2. Create composable in `app/composables/mocks/`:
+```typescript
+// app/composables/mocks/useMockMyData.ts
+export function useMockMyData() {
+  const data = ref<MyData[]>([])
+  const loading = ref(false)
+  const error = ref<Error | null>(null)
+
+  async function fetchData() {
+    loading.value = true
+    try {
+      const response = await fetch('/data/my-data.json')
+      data.value = await response.json()
+    } catch (e) {
+      error.value = e as Error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { data, loading, error, fetchData }
+}
+```
+
+### Database Schema Changes
+
+1. Update `server/db/schema.ts`
+2. Generate migration: `pnpm db:generate`
+3. Migration auto-applies on next dev server start
 
 ## 🚢 Deployment
 
@@ -226,10 +318,43 @@ Learn more: https://hub.nuxt.com/docs/getting-started/remote-storage
 | **Database** | SQLite/LibSQL (Turso) |
 | **ORM** | Drizzle 0.44.7 |
 | **Auth** | nuxt-auth-utils 0.5.25 |
-| **State** | Pinia 3.0.4 + Pinia Colada 0.18.0 |
 | **Validation** | Zod 4.1.13 |
 | **Deployment** | NuxtHub (Cloudflare) |
 | **Package Manager** | pnpm 10.24.0 |
+
+## 📦 What's Included
+
+### Pages
+- ✅ Dashboard (/) - Charts, stats, sales
+- ✅ Customers (/customers) - Table, filters, modals
+- ✅ Inbox (/inbox) - Mail list, detail view
+- ✅ Settings (/settings) - 4 sub-pages
+- ✅ Login (/login) - Email/password authentication
+
+### Components (16)
+- ✅ Dashboard: Charts, Stats, DateRangePicker, Sales, User/Teams menus
+- ✅ Customers: Add/Delete modals
+- ✅ Inbox: List, Mail detail
+- ✅ Settings: Members management (4 modals)
+- ✅ Shared: Notifications slideover
+
+### Mock Data (5 composables)
+- ✅ Notifications (5 items)
+- ✅ Members (10 members)
+- ✅ Mails (15 emails)
+- ✅ Customers (55 customers)
+- ✅ Sales (90 days)
+
+## 🎯 Roadmap
+
+- [ ] Real-time notifications
+- [ ] Dark mode support
+- [ ] Email templates
+- [ ] File upload handling
+- [ ] Advanced filtering
+- [ ] Data export (CSV, PDF)
+- [ ] Multi-language support (i18n)
+- [ ] Role-based access control (RBAC)
 
 ## 🤝 Contributing
 
@@ -250,6 +375,7 @@ Contributions welcome! Please read contributing guidelines first.
 - [Nuxt](https://nuxt.com) - The Intuitive Vue Framework
 - [NuxtHub](https://hub.nuxt.com) - Deploy Nuxt on Cloudflare
 - [Nuxt UI](https://ui.nuxt.com) - Beautiful UI components
+- [Nuxt UI Dashboard](https://github.com/nuxt-ui-pro/dashboard) - Dashboard inspiration
 - [Drizzle ORM](https://orm.drizzle.team) - TypeScript ORM
 - [Turso](https://turso.tech) - SQLite for Production
 
