@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
 
+// Initialize dashboard composable (keyboard shortcuts, notifications state)
+const { isNotificationsSlideoverOpen } = useDashboard()
+
 const route = useRoute()
 const open = ref(false)
 
@@ -8,6 +11,7 @@ const links = [[{
   label: 'Home',
   icon: 'i-lucide-house',
   to: '/',
+  shortcut: 'g-h',
   onSelect: () => {
     open.value = false
   }
@@ -16,6 +20,7 @@ const links = [[{
   icon: 'i-lucide-inbox',
   to: '/inbox',
   badge: '4',
+  shortcut: 'g-i',
   onSelect: () => {
     open.value = false
   }
@@ -23,6 +28,7 @@ const links = [[{
   label: 'Customers',
   icon: 'i-lucide-users',
   to: '/customers',
+  shortcut: 'g-c',
   onSelect: () => {
     open.value = false
   }
@@ -30,6 +36,7 @@ const links = [[{
   label: 'Settings',
   to: '/settings',
   icon: 'i-lucide-settings',
+  shortcut: 'g-s',
   defaultOpen: true,
   type: 'trigger',
   children: [{
@@ -62,6 +69,7 @@ const links = [[{
   label: 'Demo Features',
   icon: 'i-lucide-flask',
   to: '/features/demo/todos',
+  shortcut: 'g-t',
   onSelect: () => {
     open.value = false
   }

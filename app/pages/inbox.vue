@@ -4,7 +4,8 @@ import { breakpointsTailwind } from '@vueuse/core'
 import type { Mail } from '~/types'
 
 definePageMeta({
-  middleware: 'require-auth'
+  middleware: 'require-auth',
+  layout: 'dashboard'
 })
 
 const tabItems = [{

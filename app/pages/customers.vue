@@ -6,7 +6,8 @@ import type { Row } from '@tanstack/table-core'
 import type { User } from '~/types'
 
 definePageMeta({
-  middleware: 'require-auth'
+  middleware: 'require-auth',
+  layout: 'dashboard'
 })
 
 const UAvatar = resolveComponent('UAvatar')
