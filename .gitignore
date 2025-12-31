@@ -13,3 +13,4 @@ db.sqlite-*
 .data
 .wrangler
 .env*.local
+.backup/

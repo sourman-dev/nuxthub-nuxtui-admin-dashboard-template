@@ -2,7 +2,7 @@
 import { todosQuery } from '~/queries/todos'
 
 definePageMeta({
-  middleware: 'auth'
+  middleware: 'require-auth'
 })
 const newTodo = ref('')
 const newTodoInput = useTemplateRef('new-todo')

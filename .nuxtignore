@@ -1,0 +1,4 @@
+# Exclude .claude directory from Nuxt builds and file watching
+# This directory contains Claude Code agent skills with 23k+ files
+# that can overwhelm Vite's file watcher
+.claude

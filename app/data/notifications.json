@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "title": "New customer registered",
+    "description": "John Doe just signed up for the premium plan",
+    "icon": "i-lucide-user-plus",
+    "color": "primary"
+  },
+  {
+    "id": 2,
+    "title": "Payment received",
+    "description": "$1,234.56 from Acme Corporation",
+    "icon": "i-lucide-credit-card",
+    "color": "green"
+  },
+  {
+    "id": 3,
+    "title": "Server maintenance scheduled",
+    "description": "Planned downtime on January 15, 2026 at 2:00 AM",
+    "icon": "i-lucide-alert-triangle",
+    "color": "amber"
+  },
+  {
+    "id": 4,
+    "title": "New message received",
+    "description": "Sarah Wilson sent you a message about the Q4 report",
+    "icon": "i-lucide-mail",
+    "color": "blue"
+  },
+  {
+    "id": 5,
+    "title": "Backup completed",
+    "description": "Database backup finished successfully (2.3 GB)",
+    "icon": "i-lucide-database",
+    "color": "green"
+  }
+]

@@ -16,6 +16,15 @@ export default defineNuxtConfig({
   hub: {
     db: 'sqlite'
   },
+  nitro: {
+    experimental: {
+      tasks: true
+    }
+  },
+  // Auto-import composables from subdirectories
+  imports: {
+    dirs: ['composables/**']
+  },
   // Development config
   eslint: {
     config: {
