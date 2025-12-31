@@ -2,18 +2,18 @@
  * Discord notification provider
  * Sends rich embed messages to Discord webhooks
  */
-'use strict';
+'use strict'
 
-const path = require('path');
-const { send } = require('../lib/sender.cjs');
+const path = require('path')
+const { send } = require('../lib/sender.cjs')
 
 // Discord embed colors
 const COLORS = {
-  Stop: 5763719,         // Green
+  Stop: 5763719, // Green
   SubagentStop: 3447003, // Blue
   AskUserPrompt: 15844367, // Yellow
-  default: 10070709,     // Gray
-};
+  default: 10070709 // Gray
+}
 
 /**
  * Get project name from cwd path
@@ -21,8 +21,8 @@ const COLORS = {
  * @returns {string} Project name
  */
 function getProjectName(cwd) {
-  if (!cwd) return 'Unknown';
-  return path.basename(cwd) || 'Unknown';
+  if (!cwd) return 'Unknown'
+  return path.basename(cwd) || 'Unknown'
 }
 
 /**
@@ -30,13 +30,13 @@ function getProjectName(cwd) {
  * @returns {string} Formatted timestamp
  */
 function formatTimestamp() {
-  const now = new Date();
+  const now = new Date()
   return now.toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false,
-  });
+    hour12: false
+  })
 }
 
 /**
@@ -45,8 +45,8 @@ function formatTimestamp() {
  * @returns {string} Truncated session ID
  */
 function truncateSessionId(sessionId) {
-  if (!sessionId) return 'N/A';
-  return sessionId.length > 8 ? `${sessionId.slice(0, 8)}...` : sessionId;
+  if (!sessionId) return 'N/A'
+  return sessionId.length > 8 ? `${sessionId.slice(0, 8)}...` : sessionId
 }
 
 /**
@@ -55,9 +55,9 @@ function truncateSessionId(sessionId) {
  * @returns {Object} Discord embed
  */
 function buildStopEmbed(input) {
-  const cwd = input.cwd || '';
-  const sessionId = input.session_id || '';
-  const projectName = getProjectName(cwd);
+  const cwd = input.cwd || ''
+  const sessionId = input.session_id || ''
+  const projectName = getProjectName(cwd)
 
   return {
     title: 'Claude Code Session Complete',
@@ -68,9 +68,9 @@ function buildStopEmbed(input) {
     fields: [
       { name: '⏰ Time', value: formatTimestamp(), inline: true },
       { name: '🆔 Session', value: `\`${truncateSessionId(sessionId)}\``, inline: true },
-      { name: '📍 Location', value: `\`${cwd || 'Unknown'}\``, inline: false },
-    ],
-  };
+      { name: '📍 Location', value: `\`${cwd || 'Unknown'}\``, inline: false }
+    ]
+  }
 }
 
 /**
@@ -79,10 +79,10 @@ function buildStopEmbed(input) {
  * @returns {Object} Discord embed
  */
 function buildSubagentStopEmbed(input) {
-  const cwd = input.cwd || '';
-  const sessionId = input.session_id || '';
-  const agentType = input.agent_type || 'unknown';
-  const projectName = getProjectName(cwd);
+  const cwd = input.cwd || ''
+  const sessionId = input.session_id || ''
+  const agentType = input.agent_type || 'unknown'
+  const projectName = getProjectName(cwd)
 
   return {
     title: 'Claude Code Subagent Complete',
@@ -94,9 +94,9 @@ function buildSubagentStopEmbed(input) {
       { name: '⏰ Time', value: formatTimestamp(), inline: true },
       { name: '🔧 Agent Type', value: agentType, inline: true },
       { name: '🆔 Session', value: `\`${truncateSessionId(sessionId)}\``, inline: true },
-      { name: '📍 Location', value: `\`${cwd || 'Unknown'}\``, inline: false },
-    ],
-  };
+      { name: '📍 Location', value: `\`${cwd || 'Unknown'}\``, inline: false }
+    ]
+  }
 }
 
 /**
@@ -105,9 +105,9 @@ function buildSubagentStopEmbed(input) {
  * @returns {Object} Discord embed
  */
 function buildAskUserPromptEmbed(input) {
-  const cwd = input.cwd || '';
-  const sessionId = input.session_id || '';
-  const projectName = getProjectName(cwd);
+  const cwd = input.cwd || ''
+  const sessionId = input.session_id || ''
+  const projectName = getProjectName(cwd)
 
   return {
     title: 'Claude Code Needs Input',
@@ -118,9 +118,9 @@ function buildAskUserPromptEmbed(input) {
     fields: [
       { name: '⏰ Time', value: formatTimestamp(), inline: true },
       { name: '🆔 Session', value: `\`${truncateSessionId(sessionId)}\``, inline: true },
-      { name: '📍 Location', value: `\`${cwd || 'Unknown'}\``, inline: false },
-    ],
-  };
+      { name: '📍 Location', value: `\`${cwd || 'Unknown'}\``, inline: false }
+    ]
+  }
 }
 
 /**
@@ -129,10 +129,10 @@ function buildAskUserPromptEmbed(input) {
  * @returns {Object} Discord embed
  */
 function buildDefaultEmbed(input) {
-  const hookType = input.hook_event_name || 'unknown';
-  const cwd = input.cwd || '';
-  const sessionId = input.session_id || '';
-  const projectName = getProjectName(cwd);
+  const hookType = input.hook_event_name || 'unknown'
+  const cwd = input.cwd || ''
+  const sessionId = input.session_id || ''
+  const projectName = getProjectName(cwd)
 
   return {
     title: 'Claude Code Event',
@@ -144,9 +144,9 @@ function buildDefaultEmbed(input) {
       { name: '⏰ Time', value: formatTimestamp(), inline: true },
       { name: '📋 Event', value: hookType, inline: true },
       { name: '🆔 Session', value: `\`${truncateSessionId(sessionId)}\``, inline: true },
-      { name: '📍 Location', value: `\`${cwd || 'Unknown'}\``, inline: false },
-    ],
-  };
+      { name: '📍 Location', value: `\`${cwd || 'Unknown'}\``, inline: false }
+    ]
+  }
 }
 
 /**
@@ -156,17 +156,17 @@ function buildDefaultEmbed(input) {
  */
 function formatEmbed(input) {
   // Use CORRECT snake_case field names (fixed from bash script's camelCase bug)
-  const hookType = input.hook_event_name || 'unknown';
+  const hookType = input.hook_event_name || 'unknown'
 
   switch (hookType) {
     case 'Stop':
-      return buildStopEmbed(input);
+      return buildStopEmbed(input)
     case 'SubagentStop':
-      return buildSubagentStopEmbed(input);
+      return buildSubagentStopEmbed(input)
     case 'AskUserPrompt':
-      return buildAskUserPromptEmbed(input);
+      return buildAskUserPromptEmbed(input)
     default:
-      return buildDefaultEmbed(input);
+      return buildDefaultEmbed(input)
   }
 }
 
@@ -178,7 +178,7 @@ module.exports = {
    * @param {Object} env - Environment variables
    * @returns {boolean} True if DISCORD_WEBHOOK_URL is set
    */
-  isEnabled: (env) => !!env.DISCORD_WEBHOOK_URL,
+  isEnabled: env => !!env.DISCORD_WEBHOOK_URL,
 
   /**
    * Send notification to Discord
@@ -188,10 +188,10 @@ module.exports = {
    */
   send: async (input, env) => {
     if (!env.DISCORD_WEBHOOK_URL) {
-      return { success: false, error: 'DISCORD_WEBHOOK_URL not configured' };
+      return { success: false, error: 'DISCORD_WEBHOOK_URL not configured' }
     }
 
-    const embed = formatEmbed(input);
-    return send('discord', env.DISCORD_WEBHOOK_URL, { embeds: [embed] });
-  },
-};
+    const embed = formatEmbed(input)
+    return send('discord', env.DISCORD_WEBHOOK_URL, { embeds: [embed] })
+  }
+}

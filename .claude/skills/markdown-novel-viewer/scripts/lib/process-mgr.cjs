@@ -3,11 +3,11 @@
  * Used by markdown-novel-viewer server
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('fs')
+const path = require('path')
 
-const PID_DIR = '/tmp';
-const PID_PREFIX = 'md-novel-viewer-';
+const PID_DIR = '/tmp'
+const PID_PREFIX = 'md-novel-viewer-'
 
 /**
  * Get PID file path for a port
@@ -15,7 +15,7 @@ const PID_PREFIX = 'md-novel-viewer-';
  * @returns {string} - PID file path
  */
 function getPidFilePath(port) {
-  return path.join(PID_DIR, `${PID_PREFIX}${port}.pid`);
+  return path.join(PID_DIR, `${PID_PREFIX}${port}.pid`)
 }
 
 /**
@@ -24,8 +24,8 @@ function getPidFilePath(port) {
  * @param {number} pid - Process ID
  */
 function writePidFile(port, pid) {
-  const pidPath = getPidFilePath(port);
-  fs.writeFileSync(pidPath, String(pid));
+  const pidPath = getPidFilePath(port)
+  fs.writeFileSync(pidPath, String(pid))
 }
 
 /**
@@ -34,12 +34,12 @@ function writePidFile(port, pid) {
  * @returns {number|null} - PID or null if not found
  */
 function readPidFile(port) {
-  const pidPath = getPidFilePath(port);
+  const pidPath = getPidFilePath(port)
   if (fs.existsSync(pidPath)) {
-    const pid = fs.readFileSync(pidPath, 'utf8').trim();
-    return parseInt(pid, 10);
+    const pid = fs.readFileSync(pidPath, 'utf8').trim()
+    return parseInt(pid, 10)
   }
-  return null;
+  return null
 }
 
 /**
@@ -47,9 +47,9 @@ function readPidFile(port) {
  * @param {number} port - Server port
  */
 function removePidFile(port) {
-  const pidPath = getPidFilePath(port);
+  const pidPath = getPidFilePath(port)
   if (fs.existsSync(pidPath)) {
-    fs.unlinkSync(pidPath);
+    fs.unlinkSync(pidPath)
   }
 }
 
@@ -58,27 +58,28 @@ function removePidFile(port) {
  * @returns {Array<{port: number, pid: number}>} - Running instances
  */
 function findRunningInstances() {
-  const instances = [];
-  const files = fs.readdirSync(PID_DIR);
+  const instances = []
+  const files = fs.readdirSync(PID_DIR)
 
   for (const file of files) {
     if (file.startsWith(PID_PREFIX) && file.endsWith('.pid')) {
-      const port = parseInt(file.replace(PID_PREFIX, '').replace('.pid', ''), 10);
-      const pid = readPidFile(port);
+      const port = parseInt(file.replace(PID_PREFIX, '').replace('.pid', ''), 10)
+      const pid = readPidFile(port)
       if (pid) {
         // Check if process is actually running
         try {
-          process.kill(pid, 0);
-          instances.push({ port, pid });
-        } catch {
+          process.kill(pid, 0)
+          instances.push({ port, pid })
+        }
+        catch {
           // Process not running, clean up stale PID file
-          removePidFile(port);
+          removePidFile(port)
         }
       }
     }
   }
 
-  return instances;
+  return instances
 }
 
 /**
@@ -87,16 +88,17 @@ function findRunningInstances() {
  * @returns {boolean} - True if stopped successfully
  */
 function stopServer(port) {
-  const pid = readPidFile(port);
-  if (!pid) return false;
+  const pid = readPidFile(port)
+  if (!pid) return false
 
   try {
-    process.kill(pid, 'SIGTERM');
-    removePidFile(port);
-    return true;
-  } catch {
-    removePidFile(port);
-    return false;
+    process.kill(pid, 'SIGTERM')
+    removePidFile(port)
+    return true
+  }
+  catch {
+    removePidFile(port)
+    return false
   }
 }
 
@@ -105,20 +107,21 @@ function stopServer(port) {
  * @returns {number} - Number of servers stopped
  */
 function stopAllServers() {
-  const instances = findRunningInstances();
-  let stopped = 0;
+  const instances = findRunningInstances()
+  let stopped = 0
 
   for (const { port, pid } of instances) {
     try {
-      process.kill(pid, 'SIGTERM');
-      removePidFile(port);
-      stopped++;
-    } catch {
-      removePidFile(port);
+      process.kill(pid, 'SIGTERM')
+      removePidFile(port)
+      stopped++
+    }
+    catch {
+      removePidFile(port)
     }
   }
 
-  return stopped;
+  return stopped
 }
 
 /**
@@ -128,13 +131,13 @@ function stopAllServers() {
  */
 function setupShutdownHandlers(port, cleanup) {
   const handler = (signal) => {
-    if (cleanup) cleanup();
-    removePidFile(port);
-    process.exit(0);
-  };
+    if (cleanup) cleanup()
+    removePidFile(port)
+    process.exit(0)
+  }
 
-  process.on('SIGTERM', handler);
-  process.on('SIGINT', handler);
+  process.on('SIGTERM', handler)
+  process.on('SIGINT', handler)
 }
 
 module.exports = {
@@ -147,4 +150,4 @@ module.exports = {
   stopAllServers,
   setupShutdownHandlers,
   PID_PREFIX
-};
+}

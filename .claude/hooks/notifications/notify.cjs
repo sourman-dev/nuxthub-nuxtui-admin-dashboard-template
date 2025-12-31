@@ -5,14 +5,14 @@
  *
  * Usage: echo '{"hook_event_name":"Stop"}' | node notify.cjs
  */
-'use strict';
+'use strict'
 
-const fs = require('fs');
-const path = require('path');
-const { loadEnv } = require('./lib/env-loader.cjs');
+const fs = require('fs')
+const path = require('path')
+const { loadEnv } = require('./lib/env-loader.cjs')
 
 // Provider prefixes to check for enablement
-const PROVIDER_PREFIXES = ['TELEGRAM', 'DISCORD', 'SLACK'];
+const PROVIDER_PREFIXES = ['TELEGRAM', 'DISCORD', 'SLACK']
 
 /**
  * Read JSON from stdin
@@ -20,39 +20,40 @@ const PROVIDER_PREFIXES = ['TELEGRAM', 'DISCORD', 'SLACK'];
  */
 async function readStdin() {
   return new Promise((resolve, reject) => {
-    let data = '';
+    let data = ''
 
     // Handle no stdin (empty pipe)
     if (process.stdin.isTTY) {
-      resolve({});
-      return;
+      resolve({})
+      return
     }
 
-    process.stdin.setEncoding('utf8');
-    process.stdin.on('data', chunk => { data += chunk; });
+    process.stdin.setEncoding('utf8')
+    process.stdin.on('data', (chunk) => { data += chunk })
     process.stdin.on('end', () => {
       if (!data.trim()) {
-        resolve({});
-        return;
+        resolve({})
+        return
       }
       try {
-        resolve(JSON.parse(data));
-      } catch (err) {
-        console.error(`[notify] Invalid JSON input: ${err.message}`);
-        resolve({});
+        resolve(JSON.parse(data))
       }
-    });
-    process.stdin.on('error', err => {
-      console.error(`[notify] Stdin error: ${err.message}`);
-      resolve({});
-    });
+      catch (err) {
+        console.error(`[notify] Invalid JSON input: ${err.message}`)
+        resolve({})
+      }
+    })
+    process.stdin.on('error', (err) => {
+      console.error(`[notify] Stdin error: ${err.message}`)
+      resolve({})
+    })
 
     // Timeout after 5 seconds (safety)
     setTimeout(() => {
-      console.error('[notify] Stdin timeout');
-      resolve({});
-    }, 5000);
-  });
+      console.error('[notify] Stdin timeout')
+      resolve({})
+    }, 5000)
+  })
 }
 
 /**
@@ -62,7 +63,7 @@ async function readStdin() {
  * @returns {boolean}
  */
 function hasProviderEnv(prefix, env) {
-  return Object.keys(env).some(key => key.startsWith(prefix + '_'));
+  return Object.keys(env).some(key => key.startsWith(prefix + '_'))
 }
 
 /**
@@ -71,16 +72,17 @@ function hasProviderEnv(prefix, env) {
  * @returns {Object|null} Provider module or null
  */
 function loadProvider(providerName) {
-  const providerPath = path.join(__dirname, 'providers', `${providerName}.cjs`);
+  const providerPath = path.join(__dirname, 'providers', `${providerName}.cjs`)
 
   try {
     if (fs.existsSync(providerPath)) {
-      return require(providerPath);
+      return require(providerPath)
     }
-  } catch (err) {
-    console.error(`[notify] Failed to load provider ${providerName}: ${err.message}`);
   }
-  return null;
+  catch (err) {
+    console.error(`[notify] Failed to load provider ${providerName}: ${err.message}`)
+  }
+  return null
 }
 
 /**
@@ -89,68 +91,71 @@ function loadProvider(providerName) {
 async function main() {
   try {
     // Read input from stdin
-    const input = await readStdin();
+    const input = await readStdin()
 
     // Load environment with cascade
-    const cwd = input.cwd || process.cwd();
-    const env = loadEnv(cwd);
+    const cwd = input.cwd || process.cwd()
+    const env = loadEnv(cwd)
 
     // Find and call enabled providers
-    const results = [];
+    const results = []
 
     for (const prefix of PROVIDER_PREFIXES) {
-      if (!hasProviderEnv(prefix, env)) continue;
+      if (!hasProviderEnv(prefix, env)) continue
 
-      const providerName = prefix.toLowerCase();
-      const provider = loadProvider(providerName);
+      const providerName = prefix.toLowerCase()
+      const provider = loadProvider(providerName)
 
       if (!provider) {
-        console.error(`[notify] Provider ${providerName} not found`);
-        continue;
+        console.error(`[notify] Provider ${providerName} not found`)
+        continue
       }
 
       // Check if provider considers itself enabled
       if (typeof provider.isEnabled === 'function' && !provider.isEnabled(env)) {
-        continue;
+        continue
       }
 
       // Call provider
       try {
-        const result = await provider.send(input, env);
+        const result = await provider.send(input, env)
         results.push({
           provider: provider.name || providerName,
-          ...result,
-        });
+          ...result
+        })
 
         if (result.success) {
-          console.error(`[notify] ${providerName}: sent`);
-        } else if (result.throttled) {
-          console.error(`[notify] ${providerName}: throttled`);
-        } else {
-          console.error(`[notify] ${providerName}: failed - ${result.error}`);
+          console.error(`[notify] ${providerName}: sent`)
         }
-      } catch (err) {
-        console.error(`[notify] ${providerName} error: ${err.message}`);
+        else if (result.throttled) {
+          console.error(`[notify] ${providerName}: throttled`)
+        }
+        else {
+          console.error(`[notify] ${providerName}: failed - ${result.error}`)
+        }
+      }
+      catch (err) {
+        console.error(`[notify] ${providerName} error: ${err.message}`)
         results.push({
           provider: provider.name || providerName,
           success: false,
-          error: err.message,
-        });
+          error: err.message
+        })
       }
     }
 
     // Log summary if any providers ran
     if (results.length > 0) {
-      const successful = results.filter(r => r.success).length;
-      console.error(`[notify] Summary: ${successful}/${results.length} succeeded`);
+      const successful = results.filter(r => r.success).length
+      console.error(`[notify] Summary: ${successful}/${results.length} succeeded`)
     }
-
-  } catch (err) {
-    console.error(`[notify] Fatal error: ${err.message}`);
+  }
+  catch (err) {
+    console.error(`[notify] Fatal error: ${err.message}`)
   }
 
   // Always exit 0 - never block Claude
-  process.exit(0);
+  process.exit(0)
 }
 
-main();
+main()

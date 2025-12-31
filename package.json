@@ -4,7 +4,7 @@
     "dev": "nuxi dev",
     "build": "nuxi build",
     "preview": "npx nuxthub preview",
-    "db:generate": "drizzle-kit generate",
+    "db:generate": "npx nuxt db generate",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "postinstall": "nuxt prepare",

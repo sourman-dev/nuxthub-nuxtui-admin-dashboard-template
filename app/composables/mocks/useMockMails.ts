@@ -10,7 +10,8 @@ export const useMockMails = () => {
       const response = await import('~/data/mails.json')
       data.value = response.default as Mail[]
       status.value = 'success'
-    } catch (err) {
+    }
+    catch (err) {
       console.error('Failed to load mails:', err)
       status.value = 'error'
     }

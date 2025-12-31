@@ -1,12 +1,13 @@
 ---
 title: "Merge Dashboard UI with Mock Data"
 description: "Merge nuxt-ui-dashboard UI into template while preserving auth, converting all data to mocks"
-status: pending
+status: ✅ completed
 priority: P1
 effort: 6h
 branch: main
 tags: [merge, dashboard, ui, mock-data, auth]
 created: 2025-12-31
+completed: 2025-12-31
 ---
 
 # Implementation Plan: Merge Dashboard UI with Mock Data
@@ -213,7 +214,7 @@ Merge the complete nuxt-ui-dashboard UI (14 components, 8 pages, layouts, compos
 
 ### Phase 07: Integration Testing ([→ Details](./phase-07-integration-testing.md))
 **Effort**: 45 minutes
-**Status**: Pending
+**Status**: ✅ Completed (2025-12-31 15:49)
 
 - Test auth flow (login → dashboard → logout → login redirect)
 - Test all dashboard pages with mock data

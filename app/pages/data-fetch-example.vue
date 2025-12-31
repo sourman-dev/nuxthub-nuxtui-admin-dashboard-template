@@ -24,8 +24,14 @@ function clearErrorAndRefresh() {
         </h2>
       </template>
 
-      <div v-if="pending" class="flex items-center gap-2">
-        <UProgress animation="carousel" class="w-full" />
+      <div
+        v-if="pending"
+        class="flex items-center gap-2"
+      >
+        <UProgress
+          animation="carousel"
+          class="w-full"
+        />
         <span>Loading todos...</span>
       </div>
       <div v-else-if="error">
@@ -46,11 +52,17 @@ function clearErrorAndRefresh() {
           Fetched Todos:
         </h3>
         <UList>
-          <UListItem v-for="todo in todos" :key="todo.id">
+          <UListItem
+            v-for="todo in todos"
+            :key="todo.id"
+          >
             {{ todo.title }} - {{ todo.completed ? 'Completed' : 'Pending' }}
           </UListItem>
         </UList>
-        <UButton class="mt-4" @click="() => refresh()">
+        <UButton
+          class="mt-4"
+          @click="() => refresh()"
+        >
           Refresh Data
         </UButton>
       </div>

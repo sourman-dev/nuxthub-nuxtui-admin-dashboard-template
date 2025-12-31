@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-'use strict';
+'use strict'
 
 /**
  * Context Window Tracker - Self-healing context reset detection
@@ -33,19 +33,19 @@
  * @module context-tracker
  */
 
-const fs = require('fs');
+const fs = require('fs')
 const {
   MARKERS_DIR,
   CALIBRATION_PATH,
   ensureDir,
   getMarkerPath
-} = require('./ck-paths.cjs');
+} = require('./ck-paths.cjs')
 
 // Token drop threshold for Layer 2 detection (50%)
 // Rationale: /compact typically reduces tokens by 60-80%, so 50% catches
 // context resets while avoiding false positives from normal token accumulation.
 // Exclusive: drops below (<) 50% trigger reset
-const TOKEN_DROP_THRESHOLD = 0.5;
+const TOKEN_DROP_THRESHOLD = 0.5
 
 /**
  * Get smart default compact threshold based on context window size
@@ -58,19 +58,19 @@ const TOKEN_DROP_THRESHOLD = 0.5;
  */
 function getDefaultCompactThreshold(contextWindowSize) {
   const KNOWN_THRESHOLDS = {
-    200000: 155000,   // 77.5% - confirmed via /context showing 45k buffer
-    1000000: 330000,  // 33% - 1M beta window
-  };
+    200000: 155000, // 77.5% - confirmed via /context showing 45k buffer
+    1000000: 330000 // 33% - 1M beta window
+  }
 
   if (KNOWN_THRESHOLDS[contextWindowSize]) {
-    return KNOWN_THRESHOLDS[contextWindowSize];
+    return KNOWN_THRESHOLDS[contextWindowSize]
   }
 
   // Tiered defaults based on window size
   if (contextWindowSize >= 1000000) {
-    return Math.floor(contextWindowSize * 0.33);
+    return Math.floor(contextWindowSize * 0.33)
   }
-  return Math.floor(contextWindowSize * 0.775);
+  return Math.floor(contextWindowSize * 0.775)
 }
 
 /**
@@ -80,12 +80,13 @@ function getDefaultCompactThreshold(contextWindowSize) {
 function readCalibration() {
   try {
     if (fs.existsSync(CALIBRATION_PATH)) {
-      return JSON.parse(fs.readFileSync(CALIBRATION_PATH, 'utf8'));
+      return JSON.parse(fs.readFileSync(CALIBRATION_PATH, 'utf8'))
     }
-  } catch (err) {
+  }
+  catch (err) {
     // Silent fail - use defaults
   }
-  return {};
+  return {}
 }
 
 /**
@@ -94,13 +95,13 @@ function readCalibration() {
  * @returns {number} Compact threshold in tokens
  */
 function getCompactThreshold(contextWindowSize) {
-  const calibration = readCalibration();
-  const key = String(contextWindowSize);
+  const calibration = readCalibration()
+  const key = String(contextWindowSize)
 
   if (calibration[key] && calibration[key].threshold > 0) {
-    return calibration[key].threshold;
+    return calibration[key].threshold
   }
-  return getDefaultCompactThreshold(contextWindowSize);
+  return getDefaultCompactThreshold(contextWindowSize)
 }
 
 /**
@@ -111,20 +112,21 @@ function getCompactThreshold(contextWindowSize) {
  */
 function readMarker(sessionId) {
   try {
-    const markerPath = getMarkerPath(sessionId);
-    if (!fs.existsSync(markerPath)) return null;
-    const data = fs.readFileSync(markerPath, 'utf8');
-    if (!data.trim()) return null; // Catch empty/corrupt files
-    const marker = JSON.parse(data);
+    const markerPath = getMarkerPath(sessionId)
+    if (!fs.existsSync(markerPath)) return null
+    const data = fs.readFileSync(markerPath, 'utf8')
+    if (!data.trim()) return null // Catch empty/corrupt files
+    const marker = JSON.parse(data)
     // Basic schema validation
     if (!marker || typeof marker.sessionId !== 'string') {
-      return null;
+      return null
     }
-    return marker;
-  } catch (err) {
+    return marker
+  }
+  catch (err) {
     // Silent fail - corrupt JSON or read error
   }
-  return null;
+  return null
 }
 
 /**
@@ -134,10 +136,11 @@ function readMarker(sessionId) {
  */
 function writeMarker(sessionId, marker) {
   try {
-    ensureDir(MARKERS_DIR);
-    const markerPath = getMarkerPath(sessionId);
-    fs.writeFileSync(markerPath, JSON.stringify(marker));
-  } catch (err) {
+    ensureDir(MARKERS_DIR)
+    const markerPath = getMarkerPath(sessionId)
+    fs.writeFileSync(markerPath, JSON.stringify(marker))
+  }
+  catch (err) {
     // Silent fail
   }
 }
@@ -148,11 +151,12 @@ function writeMarker(sessionId, marker) {
  */
 function deleteMarker(sessionId) {
   try {
-    const markerPath = getMarkerPath(sessionId);
+    const markerPath = getMarkerPath(sessionId)
     if (fs.existsSync(markerPath)) {
-      fs.unlinkSync(markerPath);
+      fs.unlinkSync(markerPath)
     }
-  } catch (err) {
+  }
+  catch (err) {
     // Silent fail
   }
 }
@@ -166,12 +170,12 @@ function deleteMarker(sessionId) {
  */
 function detectTokenDrop(currentTotal, marker) {
   if (!marker || !marker.lastTokenTotal || marker.lastTokenTotal <= 0 || currentTotal <= 0) {
-    return false;
+    return false
   }
 
   // Token total dropped by more than 50%
-  const dropRatio = currentTotal / marker.lastTokenTotal;
-  return dropRatio < TOKEN_DROP_THRESHOLD;
+  const dropRatio = currentTotal / marker.lastTokenTotal
+  return dropRatio < TOKEN_DROP_THRESHOLD
 }
 
 /**
@@ -181,16 +185,16 @@ function detectTokenDrop(currentTotal, marker) {
  */
 function checkResetMarker(marker) {
   if (!marker) {
-    return { shouldReset: false, trigger: null };
+    return { shouldReset: false, trigger: null }
   }
 
   // Check if marker indicates a reset (clear/compact)
-  const resetTriggers = ['clear', 'session_start_clear'];
+  const resetTriggers = ['clear', 'session_start_clear']
   if (resetTriggers.includes(marker.trigger)) {
-    return { shouldReset: true, trigger: marker.trigger };
+    return { shouldReset: true, trigger: marker.trigger }
   }
 
-  return { shouldReset: false, trigger: marker.trigger };
+  return { shouldReset: false, trigger: marker.trigger }
 }
 
 /**
@@ -209,49 +213,50 @@ function checkResetMarker(marker) {
  * @returns {Object} { percentage, baseline, showCompactIndicator, resetLayer }
  */
 function trackContext({ sessionId, contextInput, contextOutput, contextWindowSize }) {
-  const currentTotal = contextInput + contextOutput;
-  const compactThreshold = getCompactThreshold(contextWindowSize);
-  const effectiveSessionId = sessionId || 'default';
+  const currentTotal = contextInput + contextOutput
+  const compactThreshold = getCompactThreshold(contextWindowSize)
+  const effectiveSessionId = sessionId || 'default'
 
   // Read session-specific marker (no global state!)
-  let marker = readMarker(effectiveSessionId);
+  let marker = readMarker(effectiveSessionId)
 
   // Track which layer triggered reset (for debugging)
-  let resetLayer = null;
-  let baseline = 0;
-  let showCompactIndicator = false;
+  let resetLayer = null
+  let baseline = 0
+  let showCompactIndicator = false
 
   // --- Layer 1: Hook marker system ---
   // Markers from PreCompact/SessionStart hooks are explicit signals
-  const { shouldReset, trigger } = checkResetMarker(marker);
+  const { shouldReset, trigger } = checkResetMarker(marker)
   if (shouldReset) {
-    resetLayer = `marker_${trigger}`;
-    baseline = currentTotal;
+    resetLayer = `marker_${trigger}`
+    baseline = currentTotal
     // Clear the reset trigger after processing
-    marker = null; // Force fresh marker creation below
+    marker = null // Force fresh marker creation below
   }
 
   // --- Layer 2: Token drop detection (fallback for hook failures) ---
   if (!resetLayer && detectTokenDrop(currentTotal, marker)) {
-    resetLayer = 'token_drop';
-    baseline = currentTotal;
-    marker = null; // Force fresh marker creation below
+    resetLayer = 'token_drop'
+    baseline = currentTotal
+    marker = null // Force fresh marker creation below
   }
 
   // --- No reset triggered - use existing marker/baseline ---
   if (!resetLayer && marker) {
     if (!marker.baselineRecorded) {
       // Marker exists but baseline not recorded yet (from PreCompact)
-      marker.baselineRecorded = true;
-      marker.baseline = currentTotal;
-      marker.lastTokenTotal = currentTotal;
-      writeMarker(effectiveSessionId, marker);
-      baseline = currentTotal;
+      marker.baselineRecorded = true
+      marker.baseline = currentTotal
+      marker.lastTokenTotal = currentTotal
+      writeMarker(effectiveSessionId, marker)
+      baseline = currentTotal
       // PreCompact triggers: "manual" (from /compact) or "auto" (from auto-compact)
-      showCompactIndicator = ['compact', 'manual', 'auto'].includes(marker.trigger);
-    } else {
+      showCompactIndicator = ['compact', 'manual', 'auto'].includes(marker.trigger)
+    }
+    else {
       // Use stored baseline
-      baseline = marker.baseline || 0;
+      baseline = marker.baseline || 0
     }
   }
 
@@ -264,23 +269,24 @@ function trackContext({ sessionId, contextInput, contextOutput, contextWindowSiz
       baseline: currentTotal,
       lastTokenTotal: currentTotal,
       timestamp: Date.now()
-    };
-    writeMarker(effectiveSessionId, newMarker);
-    if (!resetLayer) {
-      baseline = currentTotal;
     }
-  } else {
+    writeMarker(effectiveSessionId, newMarker)
+    if (!resetLayer) {
+      baseline = currentTotal
+    }
+  }
+  else {
     // Update lastTokenTotal for next token drop detection
-    marker.lastTokenTotal = currentTotal;
-    writeMarker(effectiveSessionId, marker);
+    marker.lastTokenTotal = currentTotal
+    writeMarker(effectiveSessionId, marker)
   }
 
   // Calculate effective tokens (since baseline)
-  let effectiveTotal = baseline > 0 ? currentTotal - baseline : currentTotal;
-  if (effectiveTotal < 0) effectiveTotal = 0;
+  let effectiveTotal = baseline > 0 ? currentTotal - baseline : currentTotal
+  if (effectiveTotal < 0) effectiveTotal = 0
 
   // Calculate percentage against compact threshold (not model limit)
-  const percentage = Math.min(100, Math.floor(effectiveTotal * 100 / compactThreshold));
+  const percentage = Math.min(100, Math.floor(effectiveTotal * 100 / compactThreshold))
 
   return {
     percentage,
@@ -289,7 +295,7 @@ function trackContext({ sessionId, contextInput, contextOutput, contextWindowSiz
     compactThreshold,
     showCompactIndicator,
     resetLayer
-  };
+  }
 }
 
 /**
@@ -298,8 +304,8 @@ function trackContext({ sessionId, contextInput, contextOutput, contextWindowSiz
  * @param {string} trigger - Reset trigger ('clear', 'compact', etc.)
  */
 function writeResetMarker(sessionId, trigger = 'clear') {
-  const effectiveSessionId = sessionId || 'default';
-  ensureDir(MARKERS_DIR);
+  const effectiveSessionId = sessionId || 'default'
+  ensureDir(MARKERS_DIR)
   writeMarker(effectiveSessionId, {
     sessionId: effectiveSessionId,
     trigger: `session_start_${trigger}`,
@@ -307,7 +313,7 @@ function writeResetMarker(sessionId, trigger = 'clear') {
     baseline: 0,
     lastTokenTotal: 0,
     timestamp: Date.now()
-  });
+  })
 }
 
 /**
@@ -315,8 +321,8 @@ function writeResetMarker(sessionId, trigger = 'clear') {
  * Uses new /tmp/ck/ namespace
  */
 function clearAllState() {
-  const { cleanAll } = require('./ck-paths.cjs');
-  cleanAll();
+  const { cleanAll } = require('./ck-paths.cjs')
+  cleanAll()
 }
 
 module.exports = {
@@ -332,4 +338,4 @@ module.exports = {
   deleteMarker,
   TOKEN_DROP_THRESHOLD,
   MARKERS_DIR
-};
+}

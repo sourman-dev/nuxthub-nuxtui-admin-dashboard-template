@@ -13,12 +13,12 @@
  *   By default, browser stays running for session persistence
  *   Use --close true to fully close browser
  */
-import { getBrowser, getPage, closeBrowser, disconnectBrowser, parseArgs, outputJSON, outputError } from './lib/browser.js';
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { getBrowser, getPage, closeBrowser, disconnectBrowser, parseArgs, outputJSON, outputError } from './lib/browser.js'
+import fs from 'fs/promises'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 /**
  * Get ARIA snapshot script to inject into page
@@ -294,28 +294,28 @@ function getAriaSnapshotScript() {
 
   return getSnapshot();
 })();
-`;
+`
 }
 
 async function ariaSnapshot() {
-  const args = parseArgs(process.argv.slice(2));
+  const args = parseArgs(process.argv.slice(2))
 
   try {
     const browser = await getBrowser({
       headless: args.headless !== 'false'
-    });
+    })
 
-    const page = await getPage(browser);
+    const page = await getPage(browser)
 
     // Navigate if URL provided
     if (args.url) {
       await page.goto(args.url, {
         waitUntil: args['wait-until'] || 'networkidle2'
-      });
+      })
     }
 
     // Get ARIA snapshot
-    const snapshot = await page.evaluate(getAriaSnapshotScript());
+    const snapshot = await page.evaluate(getAriaSnapshotScript())
 
     // Build result
     const result = {
@@ -324,39 +324,42 @@ async function ariaSnapshot() {
       title: await page.title(),
       format: 'yaml',
       snapshot: snapshot
-    };
+    }
 
     // Output to file or stdout
     if (args.output) {
-      const outputPath = args.output;
+      const outputPath = args.output
 
       // Ensure snapshots directory exists
-      const outputDir = path.dirname(outputPath);
-      await fs.mkdir(outputDir, { recursive: true });
+      const outputDir = path.dirname(outputPath)
+      await fs.mkdir(outputDir, { recursive: true })
 
       // Write YAML snapshot
-      await fs.writeFile(outputPath, snapshot, 'utf8');
+      await fs.writeFile(outputPath, snapshot, 'utf8')
 
       outputJSON({
         success: true,
         output: path.resolve(outputPath),
         url: page.url()
-      });
-    } else {
+      })
+    }
+    else {
       // Output to stdout
-      outputJSON(result);
+      outputJSON(result)
     }
 
     // Default: disconnect to keep browser running for session persistence
     // Use --close true to fully close browser
     if (args.close === 'true') {
-      await closeBrowser();
-    } else {
-      await disconnectBrowser();
+      await closeBrowser()
     }
-  } catch (error) {
-    outputError(error);
+    else {
+      await disconnectBrowser()
+    }
+  }
+  catch (error) {
+    outputError(error)
   }
 }
 
-ariaSnapshot();
+ariaSnapshot()

@@ -47,11 +47,14 @@ for (let i = 1; i < args.length; i++) {
   const arg = args[i]
   if (arg === '-o' || arg === '--output') {
     output = args[++i]
-  } else if (arg === '-m' || arg === '--model') {
+  }
+  else if (arg === '-m' || arg === '--model') {
     model = args[++i]
-  } else if (arg === '-r' || arg === '--resolution') {
+  }
+  else if (arg === '-r' || arg === '--resolution') {
     maxResolution = parseInt(args[++i], 10)
-  } else if (arg === '-p' || arg === '--progress') {
+  }
+  else if (arg === '-p' || arg === '--progress') {
     showProgress = true
   }
 }
@@ -140,7 +143,8 @@ async function removeBackground() {
     console.log('File sizes:')
     console.log(`  Input:  ${formatBytes(inputStats.size)}`)
     console.log(`  Output: ${formatBytes(outputStats.size)}`)
-  } catch (error) {
+  }
+  catch (error) {
     console.error('✗ Background removal failed:', error.message)
     process.exit(1)
   }

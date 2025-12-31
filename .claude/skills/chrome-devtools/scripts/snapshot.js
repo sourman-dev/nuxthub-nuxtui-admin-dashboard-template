@@ -3,24 +3,24 @@
  * Get DOM snapshot with selectors
  * Usage: node snapshot.js [--url https://example.com] [--output snapshot.json]
  */
-import { getBrowser, getPage, closeBrowser, disconnectBrowser, parseArgs, outputJSON, outputError } from './lib/browser.js';
-import fs from 'fs/promises';
+import { getBrowser, getPage, closeBrowser, disconnectBrowser, parseArgs, outputJSON, outputError } from './lib/browser.js'
+import fs from 'fs/promises'
 
 async function snapshot() {
-  const args = parseArgs(process.argv.slice(2));
+  const args = parseArgs(process.argv.slice(2))
 
   try {
     const browser = await getBrowser({
       headless: args.headless !== 'false'
-    });
+    })
 
-    const page = await getPage(browser);
+    const page = await getPage(browser)
 
     // Navigate if URL provided
     if (args.url) {
       await page.goto(args.url, {
         waitUntil: args['wait-until'] || 'networkidle2'
-      });
+      })
     }
 
     // Get interactive elements with metadata
@@ -35,24 +35,26 @@ async function snapshot() {
         '[role="button"]',
         '[role="link"]',
         '[contenteditable]'
-      ];
+      ]
 
-      const elements = [];
-      const selector = interactiveSelectors.join(', ');
-      const nodes = document.querySelectorAll(selector);
+      const elements = []
+      const selector = interactiveSelectors.join(', ')
+      const nodes = document.querySelectorAll(selector)
 
       nodes.forEach((el, index) => {
-        const rect = el.getBoundingClientRect();
+        const rect = el.getBoundingClientRect()
 
         // Generate unique selector
-        let uniqueSelector = '';
+        let uniqueSelector = ''
         if (el.id) {
-          uniqueSelector = `#${el.id}`;
-        } else if (el.className) {
-          const classes = Array.from(el.classList).join('.');
-          uniqueSelector = `${el.tagName.toLowerCase()}.${classes}`;
-        } else {
-          uniqueSelector = el.tagName.toLowerCase();
+          uniqueSelector = `#${el.id}`
+        }
+        else if (el.className) {
+          const classes = Array.from(el.classList).join('.')
+          uniqueSelector = `${el.tagName.toLowerCase()}.${classes}`
+        }
+        else {
+          uniqueSelector = el.tagName.toLowerCase()
         }
 
         elements.push({
@@ -74,32 +76,32 @@ async function snapshot() {
             width: rect.width,
             height: rect.height
           }
-        });
-      });
+        })
+      })
 
       function getXPath(element) {
         if (element.id) {
-          return `//*[@id="${element.id}"]`;
+          return `//*[@id="${element.id}"]`
         }
         if (element === document.body) {
-          return '/html/body';
+          return '/html/body'
         }
-        let ix = 0;
-        const siblings = element.parentNode?.childNodes || [];
+        let ix = 0
+        const siblings = element.parentNode?.childNodes || []
         for (let i = 0; i < siblings.length; i++) {
-          const sibling = siblings[i];
+          const sibling = siblings[i]
           if (sibling === element) {
-            return getXPath(element.parentNode) + '/' + element.tagName.toLowerCase() + '[' + (ix + 1) + ']';
+            return getXPath(element.parentNode) + '/' + element.tagName.toLowerCase() + '[' + (ix + 1) + ']'
           }
           if (sibling.nodeType === 1 && sibling.tagName === element.tagName) {
-            ix++;
+            ix++
           }
         }
-        return '';
+        return ''
       }
 
-      return elements;
-    });
+      return elements
+    })
 
     const result = {
       success: true,
@@ -107,29 +109,32 @@ async function snapshot() {
       title: await page.title(),
       elementCount: elements.length,
       elements: elements
-    };
+    }
 
     if (args.output) {
-      await fs.writeFile(args.output, JSON.stringify(result, null, 2));
+      await fs.writeFile(args.output, JSON.stringify(result, null, 2))
       outputJSON({
         success: true,
         output: args.output,
         elementCount: elements.length
-      });
-    } else {
-      outputJSON(result);
+      })
+    }
+    else {
+      outputJSON(result)
     }
 
     // Default: disconnect to keep browser running for session persistence
     // Use --close true to fully close browser
     if (args.close === 'true') {
-      await closeBrowser();
-    } else {
-      await disconnectBrowser();
+      await closeBrowser()
     }
-  } catch (error) {
-    outputError(error);
+    else {
+      await disconnectBrowser()
+    }
+  }
+  catch (error) {
+    outputError(error)
   }
 }
 
-snapshot();
+snapshot()

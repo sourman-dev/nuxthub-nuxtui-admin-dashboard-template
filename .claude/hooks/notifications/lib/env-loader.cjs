@@ -2,11 +2,11 @@
  * Environment loader with cascade: process.env > ~/.claude/.env > .claude/.env
  * Zero dependencies - manual .env parsing
  */
-'use strict';
+'use strict'
 
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
+const fs = require('fs')
+const path = require('path')
+const os = require('os')
 
 /**
  * Parse a .env file content into key-value pairs
@@ -15,43 +15,43 @@ const os = require('os');
  * @returns {Object} Parsed environment variables
  */
 function parseEnvContent(content) {
-  const result = {};
-  const lines = content.split('\n');
+  const result = {}
+  const lines = content.split('\n')
 
   for (const line of lines) {
-    const trimmed = line.trim();
+    const trimmed = line.trim()
 
     // Skip empty lines and comments
-    if (!trimmed || trimmed.startsWith('#')) continue;
+    if (!trimmed || trimmed.startsWith('#')) continue
 
     // Find first = sign
-    const eqIndex = trimmed.indexOf('=');
-    if (eqIndex === -1) continue;
+    const eqIndex = trimmed.indexOf('=')
+    if (eqIndex === -1) continue
 
-    const key = trimmed.slice(0, eqIndex).trim();
-    let value = trimmed.slice(eqIndex + 1).trim();
+    const key = trimmed.slice(0, eqIndex).trim()
+    let value = trimmed.slice(eqIndex + 1).trim()
 
     // Handle quoted values (single or double quotes)
-    if ((value.startsWith('"') && value.endsWith('"')) ||
-        (value.startsWith("'") && value.endsWith("'"))) {
-      value = value.slice(1, -1);
+    if ((value.startsWith('"') && value.endsWith('"'))
+      || (value.startsWith('\'') && value.endsWith('\''))) {
+      value = value.slice(1, -1)
     }
 
     // Handle inline comments (only if not quoted)
-    if (!trimmed.slice(eqIndex + 1).trim().startsWith('"') &&
-        !trimmed.slice(eqIndex + 1).trim().startsWith("'")) {
-      const commentIndex = value.indexOf('#');
+    if (!trimmed.slice(eqIndex + 1).trim().startsWith('"')
+      && !trimmed.slice(eqIndex + 1).trim().startsWith('\'')) {
+      const commentIndex = value.indexOf('#')
       if (commentIndex !== -1) {
-        value = value.slice(0, commentIndex).trim();
+        value = value.slice(0, commentIndex).trim()
       }
     }
 
     if (key) {
-      result[key] = value;
+      result[key] = value
     }
   }
 
-  return result;
+  return result
 }
 
 /**
@@ -62,17 +62,18 @@ function parseEnvContent(content) {
 function loadEnvFile(filePath) {
   try {
     if (fs.existsSync(filePath)) {
-      const content = fs.readFileSync(filePath, 'utf8');
-      const parsed = parseEnvContent(content);
+      const content = fs.readFileSync(filePath, 'utf8')
+      const parsed = parseEnvContent(content)
       if (Object.keys(parsed).length > 0) {
-        console.error(`[env-loader] Loaded: ${filePath}`);
+        console.error(`[env-loader] Loaded: ${filePath}`)
       }
-      return parsed;
+      return parsed
     }
-  } catch (err) {
-    console.error(`[env-loader] Failed to read ${filePath}: ${err.message}`);
   }
-  return {};
+  catch (err) {
+    console.error(`[env-loader] Failed to read ${filePath}: ${err.message}`)
+  }
+  return {}
 }
 
 /**
@@ -85,21 +86,21 @@ function loadEnv(cwd = process.cwd()) {
   const envFiles = [
     // Lowest priority first (will be overwritten)
     path.join(cwd, '.claude', '.env'),
-    path.join(os.homedir(), '.claude', '.env'),
-  ];
+    path.join(os.homedir(), '.claude', '.env')
+  ]
 
   // Start with empty object, layer on each source
-  let merged = {};
+  let merged = {}
 
   for (const filePath of envFiles) {
-    const fileEnv = loadEnvFile(filePath);
-    merged = { ...merged, ...fileEnv };
+    const fileEnv = loadEnvFile(filePath)
+    merged = { ...merged, ...fileEnv }
   }
 
   // process.env has highest priority
-  merged = { ...merged, ...process.env };
+  merged = { ...merged, ...process.env }
 
-  return merged;
+  return merged
 }
 
-module.exports = { loadEnv, parseEnvContent };
+module.exports = { loadEnv, parseEnvContent }

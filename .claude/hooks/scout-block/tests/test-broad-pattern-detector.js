@@ -11,7 +11,7 @@ const {
   isHighLevelPath,
   detectBroadPatternIssue,
   suggestSpecificPatterns
-} = require('../broad-pattern-detector.cjs');
+} = require('../broad-pattern-detector.cjs')
 
 // === isBroadPattern tests ===
 const broadPatternTests = [
@@ -56,8 +56,8 @@ const broadPatternTests = [
   { pattern: 'src/index.ts', expected: false, desc: 'specific file path' },
   { pattern: 'scripts/**/*.py', expected: false, desc: 'scoped Python files' },
   { pattern: null, expected: false, desc: 'null pattern' },
-  { pattern: '', expected: false, desc: 'empty pattern' },
-];
+  { pattern: '', expected: false, desc: 'empty pattern' }
+]
 
 // === hasSpecificDirectory tests ===
 const specificDirTests = [
@@ -71,8 +71,8 @@ const specificDirTests = [
 
   { pattern: '**/*.ts', expected: false, desc: 'no directory prefix' },
   { pattern: '*.ts', expected: false, desc: 'root only' },
-  { pattern: null, expected: false, desc: 'null' },
-];
+  { pattern: null, expected: false, desc: 'null' }
+]
 
 // === isHighLevelPath tests ===
 const highLevelPathTests = [
@@ -89,8 +89,8 @@ const highLevelPathTests = [
   { path: 'src/components', expected: false, desc: 'nested in src' },
   { path: 'lib/utils', expected: false, desc: 'nested in lib' },
   { path: 'packages/web/src', expected: false, desc: 'monorepo src' },
-  { path: '/home/user/project/src', expected: false, desc: 'absolute with src' },
-];
+  { path: '/home/user/project/src', expected: false, desc: 'absolute with src' }
+]
 
 // === detectBroadPatternIssue integration tests ===
 const integrationTests = [
@@ -146,80 +146,85 @@ const integrationTests = [
     input: null,
     expected: false,
     desc: 'null input'
-  },
-];
+  }
+]
 
 // Run tests
-console.log('Testing broad-pattern-detector module...\n');
-let passed = 0;
-let failed = 0;
+console.log('Testing broad-pattern-detector module...\n')
+let passed = 0
+let failed = 0
 
 // Test isBroadPattern
-console.log('\x1b[1m--- isBroadPattern ---\x1b[0m');
+console.log('\x1b[1m--- isBroadPattern ---\x1b[0m')
 for (const test of broadPatternTests) {
-  const result = isBroadPattern(test.pattern);
-  const success = result === test.expected;
+  const result = isBroadPattern(test.pattern)
+  const success = result === test.expected
   if (success) {
-    console.log(`\x1b[32m✓\x1b[0m ${test.desc}: "${test.pattern}" -> ${result ? 'BROAD' : 'OK'}`);
-    passed++;
-  } else {
-    console.log(`\x1b[31m✗\x1b[0m ${test.desc}: expected ${test.expected ? 'BROAD' : 'OK'}, got ${result ? 'BROAD' : 'OK'}`);
-    failed++;
+    console.log(`\x1b[32m✓\x1b[0m ${test.desc}: "${test.pattern}" -> ${result ? 'BROAD' : 'OK'}`)
+    passed++
+  }
+  else {
+    console.log(`\x1b[31m✗\x1b[0m ${test.desc}: expected ${test.expected ? 'BROAD' : 'OK'}, got ${result ? 'BROAD' : 'OK'}`)
+    failed++
   }
 }
 
 // Test hasSpecificDirectory
-console.log('\n\x1b[1m--- hasSpecificDirectory ---\x1b[0m');
+console.log('\n\x1b[1m--- hasSpecificDirectory ---\x1b[0m')
 for (const test of specificDirTests) {
-  const result = hasSpecificDirectory(test.pattern);
-  const success = result === test.expected;
+  const result = hasSpecificDirectory(test.pattern)
+  const success = result === test.expected
   if (success) {
-    console.log(`\x1b[32m✓\x1b[0m ${test.desc}: "${test.pattern}" -> ${result ? 'HAS_DIR' : 'NO_DIR'}`);
-    passed++;
-  } else {
-    console.log(`\x1b[31m✗\x1b[0m ${test.desc}: expected ${test.expected ? 'HAS_DIR' : 'NO_DIR'}, got ${result ? 'HAS_DIR' : 'NO_DIR'}`);
-    failed++;
+    console.log(`\x1b[32m✓\x1b[0m ${test.desc}: "${test.pattern}" -> ${result ? 'HAS_DIR' : 'NO_DIR'}`)
+    passed++
+  }
+  else {
+    console.log(`\x1b[31m✗\x1b[0m ${test.desc}: expected ${test.expected ? 'HAS_DIR' : 'NO_DIR'}, got ${result ? 'HAS_DIR' : 'NO_DIR'}`)
+    failed++
   }
 }
 
 // Test isHighLevelPath
-console.log('\n\x1b[1m--- isHighLevelPath ---\x1b[0m');
+console.log('\n\x1b[1m--- isHighLevelPath ---\x1b[0m')
 for (const test of highLevelPathTests) {
-  const result = isHighLevelPath(test.path);
-  const success = result === test.expected;
+  const result = isHighLevelPath(test.path)
+  const success = result === test.expected
   if (success) {
-    console.log(`\x1b[32m✓\x1b[0m ${test.desc}: "${test.path}" -> ${result ? 'HIGH_LEVEL' : 'SPECIFIC'}`);
-    passed++;
-  } else {
-    console.log(`\x1b[31m✗\x1b[0m ${test.desc}: expected ${test.expected ? 'HIGH_LEVEL' : 'SPECIFIC'}, got ${result ? 'HIGH_LEVEL' : 'SPECIFIC'}`);
-    failed++;
+    console.log(`\x1b[32m✓\x1b[0m ${test.desc}: "${test.path}" -> ${result ? 'HIGH_LEVEL' : 'SPECIFIC'}`)
+    passed++
+  }
+  else {
+    console.log(`\x1b[31m✗\x1b[0m ${test.desc}: expected ${test.expected ? 'HIGH_LEVEL' : 'SPECIFIC'}, got ${result ? 'HIGH_LEVEL' : 'SPECIFIC'}`)
+    failed++
   }
 }
 
 // Test integration
-console.log('\n\x1b[1m--- detectBroadPatternIssue (integration) ---\x1b[0m');
+console.log('\n\x1b[1m--- detectBroadPatternIssue (integration) ---\x1b[0m')
 for (const test of integrationTests) {
-  const result = detectBroadPatternIssue(test.input);
-  const success = result.blocked === test.expected;
+  const result = detectBroadPatternIssue(test.input)
+  const success = result.blocked === test.expected
   if (success) {
-    console.log(`\x1b[32m✓\x1b[0m ${test.desc} -> ${result.blocked ? 'BLOCKED' : 'ALLOWED'}`);
-    passed++;
-  } else {
-    console.log(`\x1b[31m✗\x1b[0m ${test.desc}: expected ${test.expected ? 'BLOCKED' : 'ALLOWED'}, got ${result.blocked ? 'BLOCKED' : 'ALLOWED'}`);
-    failed++;
+    console.log(`\x1b[32m✓\x1b[0m ${test.desc} -> ${result.blocked ? 'BLOCKED' : 'ALLOWED'}`)
+    passed++
+  }
+  else {
+    console.log(`\x1b[31m✗\x1b[0m ${test.desc}: expected ${test.expected ? 'BLOCKED' : 'ALLOWED'}, got ${result.blocked ? 'BLOCKED' : 'ALLOWED'}`)
+    failed++
   }
 }
 
 // Test suggestions
-console.log('\n\x1b[1m--- suggestSpecificPatterns ---\x1b[0m');
-const suggestions = suggestSpecificPatterns('**/*.ts');
+console.log('\n\x1b[1m--- suggestSpecificPatterns ---\x1b[0m')
+const suggestions = suggestSpecificPatterns('**/*.ts')
 if (suggestions.length > 0 && suggestions.some(s => s.includes('src/'))) {
-  console.log(`\x1b[32m✓\x1b[0m suggestions for **/*.ts include src-scoped patterns`);
-  passed++;
-} else {
-  console.log(`\x1b[31m✗\x1b[0m suggestions should include src-scoped patterns`);
-  failed++;
+  console.log(`\x1b[32m✓\x1b[0m suggestions for **/*.ts include src-scoped patterns`)
+  passed++
+}
+else {
+  console.log(`\x1b[31m✗\x1b[0m suggestions should include src-scoped patterns`)
+  failed++
 }
 
-console.log(`\n\x1b[1mResults:\x1b[0m ${passed} passed, ${failed} failed`);
-process.exit(failed > 0 ? 1 : 0);
+console.log(`\n\x1b[1mResults:\x1b[0m ${passed} passed, ${failed} failed`)
+process.exit(failed > 0 ? 1 : 0)

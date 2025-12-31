@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-'use strict';
+'use strict'
 
 /**
  * ClaudeKit Paths - Centralized path constants for all temporary/runtime files
@@ -17,21 +17,21 @@
  * @module ck-paths
  */
 
-const path = require('path');
-const os = require('os');
-const fs = require('fs');
+const path = require('path')
+const os = require('os')
+const fs = require('fs')
 
 // Root directory for all ClaudeKit temp files
-const CK_TMP_DIR = path.join(os.tmpdir(), 'ck');
+const CK_TMP_DIR = path.join(os.tmpdir(), 'ck')
 
 // Session-specific marker files (per-session, no race conditions)
-const MARKERS_DIR = path.join(CK_TMP_DIR, 'markers');
+const MARKERS_DIR = path.join(CK_TMP_DIR, 'markers')
 
 // Global calibration data (shared by design - records compact thresholds)
-const CALIBRATION_PATH = path.join(CK_TMP_DIR, 'calibration.json');
+const CALIBRATION_PATH = path.join(CK_TMP_DIR, 'calibration.json')
 
 // Debug logs directory
-const DEBUG_DIR = path.join(CK_TMP_DIR, 'debug');
+const DEBUG_DIR = path.join(CK_TMP_DIR, 'debug')
 
 /**
  * Ensure directory exists
@@ -40,12 +40,13 @@ const DEBUG_DIR = path.join(CK_TMP_DIR, 'debug');
 function ensureDir(dirPath) {
   try {
     if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true });
+      fs.mkdirSync(dirPath, { recursive: true })
     }
-  } catch (err) {
+  }
+  catch (err) {
     // Silent fail - non-critical, but log for debugging
     if (process.env.CK_DEBUG) {
-      console.error(`[CK] Failed to create ${dirPath}: ${err.message}`);
+      console.error(`[CK] Failed to create ${dirPath}: ${err.message}`)
     }
   }
 }
@@ -56,7 +57,7 @@ function ensureDir(dirPath) {
  * @returns {string} Full path to marker file
  */
 function getMarkerPath(sessionId) {
-  return path.join(MARKERS_DIR, `${sessionId}.json`);
+  return path.join(MARKERS_DIR, `${sessionId}.json`)
 }
 
 /**
@@ -65,7 +66,7 @@ function getMarkerPath(sessionId) {
  * @returns {string} Full path to debug log
  */
 function getDebugLogPath(sessionId) {
-  return path.join(DEBUG_DIR, `${sessionId}.log`);
+  return path.join(DEBUG_DIR, `${sessionId}.log`)
 }
 
 /**
@@ -73,9 +74,9 @@ function getDebugLogPath(sessionId) {
  * Call this at startup to ensure directories exist
  */
 function initDirs() {
-  ensureDir(CK_TMP_DIR);
-  ensureDir(MARKERS_DIR);
-  ensureDir(DEBUG_DIR);
+  ensureDir(CK_TMP_DIR)
+  ensureDir(MARKERS_DIR)
+  ensureDir(DEBUG_DIR)
 }
 
 /**
@@ -85,9 +86,10 @@ function initDirs() {
 function cleanAll() {
   try {
     if (fs.existsSync(CK_TMP_DIR)) {
-      fs.rmSync(CK_TMP_DIR, { recursive: true, force: true });
+      fs.rmSync(CK_TMP_DIR, { recursive: true, force: true })
     }
-  } catch (err) {
+  }
+  catch (err) {
     // Silent fail
   }
 }
@@ -107,4 +109,4 @@ module.exports = {
   getDebugLogPath,
   initDirs,
   cleanAll
-};
+}

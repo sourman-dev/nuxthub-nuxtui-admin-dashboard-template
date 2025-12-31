@@ -5,15 +5,15 @@
  * @module plan-scanner
  */
 
-const fs = require('fs');
-const path = require('path');
-const { parsePlanTable } = require('./plan-parser.cjs');
+const fs = require('fs')
+const path = require('path')
+const { parsePlanTable } = require('./plan-parser.cjs')
 const {
   extractPlanMetadata,
   generateTimelineStats,
   generateActivityHeatmap,
   normalizeStatus
-} = require('./plan-metadata-extractor.cjs');
+} = require('./plan-metadata-extractor.cjs')
 
 /**
  * Calculate progress statistics from phases array
@@ -22,7 +22,7 @@ const {
  */
 function calculateProgress(phases) {
   if (!phases || phases.length === 0) {
-    return { total: 0, completed: 0, inProgress: 0, pending: 0, percentage: 0 };
+    return { total: 0, completed: 0, inProgress: 0, pending: 0, percentage: 0 }
   }
 
   const stats = {
@@ -30,24 +30,26 @@ function calculateProgress(phases) {
     completed: 0,
     inProgress: 0,
     pending: 0
-  };
+  }
 
   for (const phase of phases) {
-    const status = (phase.status || '').toLowerCase();
+    const status = (phase.status || '').toLowerCase()
     if (status === 'completed' || status === 'done') {
-      stats.completed++;
-    } else if (status === 'in-progress' || status === 'in progress' || status === 'active') {
-      stats.inProgress++;
-    } else {
-      stats.pending++;
+      stats.completed++
+    }
+    else if (status === 'in-progress' || status === 'in progress' || status === 'active') {
+      stats.inProgress++
+    }
+    else {
+      stats.pending++
     }
   }
 
   stats.percentage = stats.total > 0
     ? Math.round((stats.completed / stats.total) * 100)
-    : 0;
+    : 0
 
-  return stats;
+  return stats
 }
 
 /**
@@ -57,13 +59,13 @@ function calculateProgress(phases) {
  */
 function parsePlanName(dirName) {
   // Remove date prefix: YYMMDD-, YYYYMMDD-, YYMMDD-HHMM-, YYYYMMDD-HHMM-
-  const withoutDate = dirName.replace(/^\d{6,8}(-\d{4})?-/, '');
+  const withoutDate = dirName.replace(/^\d{6,8}(-\d{4})?-/, '')
 
   // Convert kebab-case to Title Case
   return withoutDate
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    .join(' ')
 }
 
 /**
@@ -75,32 +77,32 @@ function parsePlanName(dirName) {
 function deriveStatus(stats, headerStatus) {
   // If header explicitly defines status, use it (normalized)
   if (headerStatus) {
-    const normalized = headerStatus.toLowerCase().trim();
+    const normalized = headerStatus.toLowerCase().trim()
     if (normalized.includes('complete') || normalized.includes('done')) {
-      return 'completed';
+      return 'completed'
     }
     if (normalized.includes('review')) {
-      return 'in-review';
+      return 'in-review'
     }
     if (normalized.includes('cancel')) {
-      return 'cancelled';
+      return 'cancelled'
     }
     if (normalized.includes('progress') || normalized.includes('active')) {
-      return 'in-progress';
+      return 'in-progress'
     }
     if (normalized.includes('pending') || normalized.includes('todo') || normalized.includes('planned')) {
-      return 'pending';
+      return 'pending'
     }
   }
 
   // Otherwise derive from phase stats
   if (stats.completed === stats.total && stats.total > 0) {
-    return 'completed';
+    return 'completed'
   }
   if (stats.inProgress > 0 || stats.completed > 0) {
-    return 'in-progress';
+    return 'in-progress'
   }
-  return 'pending';
+  return 'pending'
 }
 
 /**
@@ -111,19 +113,19 @@ function deriveStatus(stats, headerStatus) {
 function getPlanMetadata(planFilePath) {
   try {
     if (!fs.existsSync(planFilePath)) {
-      return null;
+      return null
     }
 
-    const directory = path.dirname(planFilePath);
-    const dirName = path.basename(directory);
-    const stats = fs.statSync(planFilePath);
+    const directory = path.dirname(planFilePath)
+    const dirName = path.basename(directory)
+    const stats = fs.statSync(planFilePath)
 
     // Parse phases from plan table
-    const phases = parsePlanTable(planFilePath);
-    const progress = calculateProgress(phases);
+    const phases = parsePlanTable(planFilePath)
+    const progress = calculateProgress(phases)
 
     // Extract rich metadata (dates, effort, priority, etc.)
-    const richMeta = extractPlanMetadata(planFilePath);
+    const richMeta = extractPlanMetadata(planFilePath)
 
     return {
       id: dirName,
@@ -152,10 +154,11 @@ function getPlanMetadata(planFilePath) {
       tags: richMeta.tags || [],
       assignee: richMeta.assignee,
       title: richMeta.title
-    };
-  } catch (err) {
-    console.error(`[plan-scanner] Error reading plan: ${planFilePath}`, err.message);
-    return null;
+    }
+  }
+  catch (err) {
+    console.error(`[plan-scanner] Error reading plan: ${planFilePath}`, err.message)
+    return null
   }
 }
 
@@ -166,20 +169,20 @@ function getPlanMetadata(planFilePath) {
  * @returns {boolean}
  */
 function isPathSafe(targetPath, baseDir) {
-  const resolved = path.resolve(targetPath);
-  const resolvedBase = path.resolve(baseDir);
+  const resolved = path.resolve(targetPath)
+  const resolvedBase = path.resolve(baseDir)
 
   // Must start with base directory
   if (!resolved.startsWith(resolvedBase)) {
-    return false;
+    return false
   }
 
   // No null bytes
   if (targetPath.includes('\0')) {
-    return false;
+    return false
   }
 
-  return true;
+  return true
 }
 
 /**
@@ -194,10 +197,10 @@ function scanPlans(plansDir, options = {}) {
   const {
     maxDepth = 2,
     exclude = ['node_modules', '.git', 'templates', 'reports', 'research']
-  } = options;
+  } = options
 
-  const resolvedBase = path.resolve(plansDir);
-  const plans = [];
+  const resolvedBase = path.resolve(plansDir)
+  const plans = []
 
   /**
    * Recursive directory scanner
@@ -205,42 +208,44 @@ function scanPlans(plansDir, options = {}) {
    * @param {number} depth - Current depth
    */
   function scanDir(dir, depth) {
-    if (depth > maxDepth) return;
+    if (depth > maxDepth) return
 
     // Security: validate path
     if (!isPathSafe(dir, resolvedBase)) {
-      console.error(`[plan-scanner] Path traversal blocked: ${dir}`);
-      return;
+      console.error(`[plan-scanner] Path traversal blocked: ${dir}`)
+      return
     }
 
-    let entries;
+    let entries
     try {
-      entries = fs.readdirSync(dir, { withFileTypes: true });
-    } catch (err) {
-      console.error(`[plan-scanner] Cannot read directory: ${dir}`, err.message);
-      return;
+      entries = fs.readdirSync(dir, { withFileTypes: true })
+    }
+    catch (err) {
+      console.error(`[plan-scanner] Cannot read directory: ${dir}`, err.message)
+      return
     }
 
     for (const entry of entries) {
       // Skip excluded directories
-      if (exclude.includes(entry.name)) continue;
+      if (exclude.includes(entry.name)) continue
 
       // Skip hidden directories
-      if (entry.name.startsWith('.')) continue;
+      if (entry.name.startsWith('.')) continue
 
-      const fullPath = path.join(dir, entry.name);
+      const fullPath = path.join(dir, entry.name)
 
       if (entry.isDirectory()) {
         // Check for plan.md in this directory
-        const planFile = path.join(fullPath, 'plan.md');
+        const planFile = path.join(fullPath, 'plan.md')
         if (fs.existsSync(planFile)) {
-          const metadata = getPlanMetadata(planFile);
+          const metadata = getPlanMetadata(planFile)
           if (metadata) {
-            plans.push(metadata);
+            plans.push(metadata)
           }
-        } else {
+        }
+        else {
           // Recurse into subdirectory
-          scanDir(fullPath, depth + 1);
+          scanDir(fullPath, depth + 1)
         }
       }
     }
@@ -248,15 +253,16 @@ function scanPlans(plansDir, options = {}) {
 
   // Start scanning
   if (fs.existsSync(resolvedBase)) {
-    scanDir(resolvedBase, 0);
-  } else {
-    console.error(`[plan-scanner] Plans directory not found: ${plansDir}`);
+    scanDir(resolvedBase, 0)
+  }
+  else {
+    console.error(`[plan-scanner] Plans directory not found: ${plansDir}`)
   }
 
   // Sort by lastModified descending (newest first)
-  plans.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
+  plans.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified))
 
-  return plans;
+  return plans
 }
 
 module.exports = {
@@ -269,4 +275,4 @@ module.exports = {
   // Re-export timeline helpers
   generateTimelineStats,
   generateActivityHeatmap
-};
+}

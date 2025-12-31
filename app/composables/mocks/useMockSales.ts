@@ -20,7 +20,7 @@ export const useMockSales = () => {
 
       // Client-side date range filtering
       if (options?.startDate || options?.endDate) {
-        sales = sales.filter(s => {
+        sales = sales.filter((s) => {
           const saleDate = new Date(s.date)
           if (options.startDate && saleDate < options.startDate) return false
           if (options.endDate && saleDate > options.endDate) return false
@@ -29,10 +29,12 @@ export const useMockSales = () => {
       }
 
       return sales
-    } catch (err) {
+    }
+    catch (err) {
       error.value = err as Error
       return []
-    } finally {
+    }
+    finally {
       loading.value = false
     }
   }

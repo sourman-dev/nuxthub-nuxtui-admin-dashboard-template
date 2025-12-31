@@ -14,28 +14,28 @@
  * @returns {string[]} Array of extracted paths
  */
 function extractFromToolInput(toolInput) {
-  const paths = [];
+  const paths = []
 
   if (!toolInput || typeof toolInput !== 'object') {
-    return paths;
+    return paths
   }
 
   // Direct path params (Read, Edit, Write, Grep, Glob tools)
-  const directParams = ['file_path', 'path', 'pattern'];
+  const directParams = ['file_path', 'path', 'pattern']
   for (const param of directParams) {
     if (toolInput[param] && typeof toolInput[param] === 'string') {
-      const normalized = normalizeExtractedPath(toolInput[param]);
-      if (normalized) paths.push(normalized);
+      const normalized = normalizeExtractedPath(toolInput[param])
+      if (normalized) paths.push(normalized)
     }
   }
 
   // Extract from Bash command if present
   if (toolInput.command && typeof toolInput.command === 'string') {
-    const cmdPaths = extractFromCommand(toolInput.command);
-    paths.push(...cmdPaths);
+    const cmdPaths = extractFromCommand(toolInput.command)
+    paths.push(...cmdPaths)
   }
 
-  return paths.filter(Boolean);
+  return paths.filter(Boolean)
 }
 
 /**
@@ -47,48 +47,48 @@ function extractFromToolInput(toolInput) {
  */
 function extractFromCommand(command) {
   if (!command || typeof command !== 'string') {
-    return [];
+    return []
   }
 
-  const paths = [];
+  const paths = []
 
   // First, extract quoted strings (preserve spaces in paths)
-  const quotedPattern = /["']([^"']+)["']/g;
-  let match;
+  const quotedPattern = /["']([^"']+)["']/g
+  let match
   while ((match = quotedPattern.exec(command)) !== null) {
     if (looksLikePath(match[1])) {
-      paths.push(normalizeExtractedPath(match[1]));
+      paths.push(normalizeExtractedPath(match[1]))
     }
   }
 
   // Remove quoted strings for unquoted path extraction
-  const withoutQuotes = command.replace(/["'][^"']*["']/g, ' ');
+  const withoutQuotes = command.replace(/["'][^"']*["']/g, ' ')
 
   // Split on whitespace and extract path-like tokens
-  const tokens = withoutQuotes.split(/\s+/).filter(Boolean);
+  const tokens = withoutQuotes.split(/\s+/).filter(Boolean)
 
   for (const token of tokens) {
     // Skip flags and shell operators
-    if (isSkippableToken(token)) continue;
+    if (isSkippableToken(token)) continue
 
     // Priority check: if token IS a blocked directory name exactly, include it
     // This handles cases like "cd build" where "build" is both a command word
     // and a blocked directory name
     if (isBlockedDirName(token)) {
-      paths.push(normalizeExtractedPath(token));
-      continue;
+      paths.push(normalizeExtractedPath(token))
+      continue
     }
 
     // Skip common non-path command words
-    if (isCommandKeyword(token)) continue;
+    if (isCommandKeyword(token)) continue
 
     // Check if it looks like a path
     if (looksLikePath(token)) {
-      paths.push(normalizeExtractedPath(token));
+      paths.push(normalizeExtractedPath(token))
     }
   }
 
-  return paths;
+  return paths
 }
 
 // Common blocked directory names that should be extracted even if they
@@ -97,7 +97,7 @@ function extractFromCommand(command) {
 const BLOCKED_DIR_NAMES = [
   'node_modules', '__pycache__', '.git', 'dist', 'build',
   '.next', '.nuxt', '.venv', 'venv', 'vendor', 'target', 'coverage'
-];
+]
 
 /**
  * Check if token is exactly a blocked directory name
@@ -107,7 +107,7 @@ const BLOCKED_DIR_NAMES = [
  * @returns {boolean}
  */
 function isBlockedDirName(token) {
-  return BLOCKED_DIR_NAMES.includes(token);
+  return BLOCKED_DIR_NAMES.includes(token)
 }
 
 /**
@@ -117,24 +117,24 @@ function isBlockedDirName(token) {
  * @returns {boolean}
  */
 function looksLikePath(str) {
-  if (!str || str.length < 2) return false;
+  if (!str || str.length < 2) return false
 
   // Contains path separator
-  if (str.includes('/') || str.includes('\\')) return true;
+  if (str.includes('/') || str.includes('\\')) return true
 
   // Starts with relative path indicator
-  if (str.startsWith('./') || str.startsWith('../')) return true;
+  if (str.startsWith('./') || str.startsWith('../')) return true
 
   // Has file extension (likely a file)
-  if (/\.\w{1,6}$/.test(str)) return true;
+  if (/\.\w{1,6}$/.test(str)) return true
 
   // Contains common blocked directory names
-  if (/node_modules|__pycache__|\.git|dist|build/.test(str)) return true;
+  if (/node_modules|__pycache__|\.git|dist|build/.test(str)) return true
 
   // Looks like a directory path
-  if (/^[a-zA-Z0-9_-]+\//.test(str)) return true;
+  if (/^[a-zA-Z0-9_-]+\//.test(str)) return true
 
-  return false;
+  return false
 }
 
 /**
@@ -145,17 +145,17 @@ function looksLikePath(str) {
  */
 function isSkippableToken(token) {
   // Flags
-  if (token.startsWith('-')) return true;
+  if (token.startsWith('-')) return true
 
   // Shell operators
-  if (['|', '||', '&&', '>', '>>', '<', '<<', '&', ';'].includes(token)) return true;
-  if (token.startsWith('|') || token.startsWith('>') || token.startsWith('<')) return true;
-  if (token.startsWith('&')) return true;
+  if (['|', '||', '&&', '>', '>>', '<', '<<', '&', ';'].includes(token)) return true
+  if (token.startsWith('|') || token.startsWith('>') || token.startsWith('<')) return true
+  if (token.startsWith('&')) return true
 
   // Numeric values
-  if (/^\d+$/.test(token)) return true;
+  if (/^\d+$/.test(token)) return true
 
-  return false;
+  return false
 }
 
 /**
@@ -191,9 +191,9 @@ function isCommandKeyword(token) {
     // Misc
     'sudo', 'time', 'timeout', 'watch', 'make', 'cargo', 'python', 'python3', 'pip',
     'ruby', 'gem', 'go', 'rust', 'java', 'javac', 'mvn', 'gradle'
-  ];
+  ]
 
-  return keywords.includes(token.toLowerCase());
+  return keywords.includes(token.toLowerCase())
 }
 
 /**
@@ -205,25 +205,25 @@ function isCommandKeyword(token) {
  * @returns {string} Normalized path
  */
 function normalizeExtractedPath(path) {
-  if (!path) return '';
+  if (!path) return ''
 
-  let normalized = path.trim();
+  let normalized = path.trim()
 
   // Remove surrounding quotes
-  if ((normalized.startsWith('"') && normalized.endsWith('"')) ||
-      (normalized.startsWith("'") && normalized.endsWith("'"))) {
-    normalized = normalized.slice(1, -1);
+  if ((normalized.startsWith('"') && normalized.endsWith('"'))
+    || (normalized.startsWith('\'') && normalized.endsWith('\''))) {
+    normalized = normalized.slice(1, -1)
   }
 
   // Normalize path separators to forward slash
-  normalized = normalized.replace(/\\/g, '/');
+  normalized = normalized.replace(/\\/g, '/')
 
   // Remove trailing slash for consistency
   if (normalized.endsWith('/') && normalized.length > 1) {
-    normalized = normalized.slice(0, -1);
+    normalized = normalized.slice(0, -1)
   }
 
-  return normalized;
+  return normalized
 }
 
 module.exports = {
@@ -235,4 +235,4 @@ module.exports = {
   isBlockedDirName,
   normalizeExtractedPath,
   BLOCKED_DIR_NAMES
-};
+}

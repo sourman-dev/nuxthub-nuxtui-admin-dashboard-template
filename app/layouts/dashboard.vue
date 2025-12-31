@@ -2,7 +2,7 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 // Initialize dashboard composable (keyboard shortcuts, notifications state)
-const { isNotificationsSlideoverOpen } = useDashboard()
+useDashboard()
 
 const route = useRoute()
 const open = ref(false)
@@ -99,7 +99,10 @@ const groups = computed(() => [{
       </template>
 
       <template #default="{ collapsed }">
-        <UDashboardSearchButton :collapsed="collapsed" class="bg-transparent ring-default" />
+        <UDashboardSearchButton
+          :collapsed="collapsed"
+          class="bg-transparent ring-default"
+        />
 
         <UNavigationMenu
           :collapsed="collapsed"

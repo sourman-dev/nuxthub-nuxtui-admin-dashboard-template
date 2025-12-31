@@ -32,9 +32,12 @@ async function handleLogin() {
       path: '/',
       persistState: false
     })
-  } catch (err: any) {
-    error.value = err.data?.message || 'Invalid credentials'
-  } finally {
+  }
+  catch (err) {
+    const errorData = err as any
+    error.value = errorData.data?.message || 'Invalid credentials'
+  }
+  finally {
     loading.value = false
   }
 }
@@ -50,14 +53,19 @@ useSeoMeta({
     <UCard class="w-full max-w-md">
       <template #header>
         <div class="text-center">
-          <h1 class="text-2xl font-bold">Welcome to Dashboard</h1>
+          <h1 class="text-2xl font-bold">
+            Welcome to Dashboard
+          </h1>
           <p class="text-neutral-500 dark:text-neutral-400 mt-2">
             Sign in to access your dashboard
           </p>
         </div>
       </template>
 
-      <form @submit.prevent="handleLogin" class="space-y-4">
+      <form
+        class="space-y-4"
+        @submit.prevent="handleLogin"
+      >
         <UAlert
           v-if="error"
           color="error"

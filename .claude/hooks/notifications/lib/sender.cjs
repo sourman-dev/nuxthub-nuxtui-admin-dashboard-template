@@ -2,14 +2,14 @@
  * HTTP sender with smart throttling
  * Uses native fetch (Node 18+) - zero dependencies
  */
-'use strict';
+'use strict'
 
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
+const fs = require('fs')
+const path = require('path')
+const os = require('os')
 
-const THROTTLE_FILE = path.join(os.tmpdir(), 'ck-noti-throttle.json');
-const THROTTLE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+const THROTTLE_FILE = path.join(os.tmpdir(), 'ck-noti-throttle.json')
+const THROTTLE_DURATION_MS = 5 * 60 * 1000 // 5 minutes
 
 /**
  * Load throttle state from temp file
@@ -18,14 +18,15 @@ const THROTTLE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 function loadThrottleState() {
   try {
     if (fs.existsSync(THROTTLE_FILE)) {
-      const content = fs.readFileSync(THROTTLE_FILE, 'utf8');
-      return JSON.parse(content);
+      const content = fs.readFileSync(THROTTLE_FILE, 'utf8')
+      return JSON.parse(content)
     }
-  } catch (err) {
-    // Corrupted file - start fresh
-    console.error(`[sender] Throttle file corrupted, resetting: ${err.message}`);
   }
-  return {};
+  catch (err) {
+    // Corrupted file - start fresh
+    console.error(`[sender] Throttle file corrupted, resetting: ${err.message}`)
+  }
+  return {}
 }
 
 /**
@@ -34,9 +35,10 @@ function loadThrottleState() {
  */
 function saveThrottleState(state) {
   try {
-    fs.writeFileSync(THROTTLE_FILE, JSON.stringify(state, null, 2), 'utf8');
-  } catch (err) {
-    console.error(`[sender] Failed to save throttle state: ${err.message}`);
+    fs.writeFileSync(THROTTLE_FILE, JSON.stringify(state, null, 2), 'utf8')
+  }
+  catch (err) {
+    console.error(`[sender] Failed to save throttle state: ${err.message}`)
   }
 }
 
@@ -46,13 +48,13 @@ function saveThrottleState(state) {
  * @returns {boolean} True if throttled
  */
 function isThrottled(provider) {
-  const state = loadThrottleState();
-  const lastError = state[provider];
+  const state = loadThrottleState()
+  const lastError = state[provider]
 
-  if (!lastError) return false;
+  if (!lastError) return false
 
-  const elapsed = Date.now() - lastError;
-  return elapsed < THROTTLE_DURATION_MS;
+  const elapsed = Date.now() - lastError
+  return elapsed < THROTTLE_DURATION_MS
 }
 
 /**
@@ -60,9 +62,9 @@ function isThrottled(provider) {
  * @param {string} provider - Provider name
  */
 function recordError(provider) {
-  const state = loadThrottleState();
-  state[provider] = Date.now();
-  saveThrottleState(state);
+  const state = loadThrottleState()
+  state[provider] = Date.now()
+  saveThrottleState(state)
 }
 
 /**
@@ -70,10 +72,10 @@ function recordError(provider) {
  * @param {string} provider - Provider name
  */
 function clearThrottle(provider) {
-  const state = loadThrottleState();
+  const state = loadThrottleState()
   if (state[provider]) {
-    delete state[provider];
-    saveThrottleState(state);
+    delete state[provider]
+    saveThrottleState(state)
   }
 }
 
@@ -88,7 +90,7 @@ function clearThrottle(provider) {
 async function send(provider, url, body, headers = {}) {
   // Check throttle first
   if (isThrottled(provider)) {
-    return { success: false, throttled: true };
+    return { success: false, throttled: true }
   }
 
   try {
@@ -96,33 +98,33 @@ async function send(provider, url, body, headers = {}) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
+        ...headers
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify(body)
+    })
 
     if (!response.ok) {
-      const errorText = await response.text().catch(() => 'Unknown error');
-      const errorMsg = `HTTP ${response.status}: ${errorText.slice(0, 100)}`;
+      const errorText = await response.text().catch(() => 'Unknown error')
+      const errorMsg = `HTTP ${response.status}: ${errorText.slice(0, 100)}`
 
       // Record error for throttling
-      recordError(provider);
-      console.error(`[sender] ${provider} failed: ${errorMsg}`);
+      recordError(provider)
+      console.error(`[sender] ${provider} failed: ${errorMsg}`)
 
-      return { success: false, error: errorMsg };
+      return { success: false, error: errorMsg }
     }
 
     // Success - clear any previous throttle
-    clearThrottle(provider);
-    return { success: true };
-
-  } catch (err) {
+    clearThrottle(provider)
+    return { success: true }
+  }
+  catch (err) {
     // Network error - record for throttling
-    recordError(provider);
-    console.error(`[sender] ${provider} network error: ${err.message}`);
+    recordError(provider)
+    console.error(`[sender] ${provider} network error: ${err.message}`)
 
-    return { success: false, error: err.message };
+    return { success: false, error: err.message }
   }
 }
 
-module.exports = { send, isThrottled };
+module.exports = { send, isThrottled }

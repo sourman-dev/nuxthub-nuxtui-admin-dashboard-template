@@ -14,10 +14,12 @@ export const useMockNotifications = () => {
 
       const response = await import('~/data/notifications.json')
       return response.default as Notification[]
-    } catch (err) {
+    }
+    catch (err) {
       error.value = err as Error
       return []
-    } finally {
+    }
+    finally {
       loading.value = false
     }
   }

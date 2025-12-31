@@ -8,7 +8,7 @@
  */
 
 // A simple implementation of make-array
-function makeArray (subject) {
+function makeArray(subject) {
   return Array.isArray(subject)
     ? subject
     : [subject]
@@ -40,7 +40,7 @@ if (typeof Symbol !== 'undefined') {
 const KEY_IGNORE = TMP_KEY_IGNORE
 
 const define = (object, key, value) =>
-  Object.defineProperty(object, key, {value})
+  Object.defineProperty(object, key, { value })
 
 const REGEX_REGEXP_RANGE = /([0-z])-([0-z])/g
 
@@ -58,8 +58,8 @@ const sanitizeRange = range => range.replace(
 )
 
 // See fixtures #59
-const cleanRangeBackSlash = slashes => {
-  const {length} = slashes
+const cleanRangeBackSlash = (slashes) => {
+  const { length } = slashes
   return slashes.slice(0, length - length % 2)
 }
 
@@ -156,14 +156,14 @@ const REPLACERS = [
     //   (which has been replaced by section "leading slash")
     // If starts with '**', adding a '^' to the regular expression also works
     /^(?=[^^])/,
-    function startingReplacer () {
+    function startingReplacer() {
       // If has a slash `/` at the beginning or middle
       return !/\/(?!$)/.test(this)
-        // > Prior to 2.22.1
-        // > If the pattern does not contain a slash /,
-        // >   Git treats it as a shell glob pattern
-        // Actually, if there is only a trailing slash,
-        //   git also treats it as a shell glob pattern
+      // > Prior to 2.22.1
+      // > If the pattern does not contain a slash /,
+      // >   Git treats it as a shell glob pattern
+      // Actually, if there is only a trailing slash,
+      //   git also treats it as a shell glob pattern
 
         // After 2.22.1 (compatible but clearer)
         // > If there is a separator at the beginning or middle (or both)
@@ -197,8 +197,8 @@ const REPLACERS = [
       // '/**/'
       ? '(?:\\/[^\\/]+)*'
 
-      // case: /**
-      // > A trailing `"/**"` matches everything inside.
+    // case: /**
+    // > A trailing `"/**"` matches everything inside.
 
       // #21: everything inside but it should not include the current folder
       : '\\/.+'
@@ -292,9 +292,9 @@ const REPLACERS = [
     /(\^|\\\/)?\\\*$/,
     (_, p1) => {
       const prefix = p1
-        // '\^':
-        // '/*' does not match EMPTY
-        // '/*' does not match everything
+      // '\^':
+      // '/*' does not match EMPTY
+      // '/*' does not match everything
 
         // '\\\/':
         // 'abc/*' does not match 'abc/'
@@ -306,7 +306,7 @@ const REPLACERS = [
 
       return `${prefix}(?=$|\\/$)`
     }
-  ],
+  ]
 ]
 
 // A simple cache, because an ignore rule only has only one certain meaning
@@ -343,7 +343,7 @@ const checkPattern = pattern => pattern
 const splitPattern = pattern => pattern.split(REGEX_SPLITALL_CRLF)
 
 class IgnoreRule {
-  constructor (
+  constructor(
     origin,
     pattern,
     negative,
@@ -369,10 +369,10 @@ const createRule = (pattern, ignoreCase) => {
   pattern = pattern
   // > Put a backslash ("\") in front of the first "!" for patterns that
   // >   begin with a literal "!", for example, `"\!important!.txt"`.
-  .replace(REGEX_REPLACE_LEADING_EXCAPED_EXCLAMATION, '!')
+    .replace(REGEX_REPLACE_LEADING_EXCAPED_EXCLAMATION, '!')
   // > Put a backslash ("\") in front of the first hash for patterns that
   // >   begin with a hash.
-  .replace(REGEX_REPLACE_LEADING_EXCAPED_HASH, '#')
+    .replace(REGEX_REPLACE_LEADING_EXCAPED_HASH, '#')
 
   const regex = makeRegex(pattern, ignoreCase)
 
@@ -419,7 +419,7 @@ checkPath.isNotRelative = isNotRelative
 checkPath.convert = p => p
 
 class Ignore {
-  constructor ({
+  constructor({
     ignorecase = true,
     ignoreCase = ignorecase,
     allowRelativePaths = false
@@ -432,12 +432,12 @@ class Ignore {
     this._initCache()
   }
 
-  _initCache () {
+  _initCache() {
     this._ignoreCache = Object.create(null)
     this._testCache = Object.create(null)
   }
 
-  _addPattern (pattern) {
+  _addPattern(pattern) {
     // #32
     if (pattern && pattern[KEY_IGNORE]) {
       this._rules = this._rules.concat(pattern._rules)
@@ -453,7 +453,7 @@ class Ignore {
   }
 
   // @param {Array<string> | string | Ignore} pattern
-  add (pattern) {
+  add(pattern) {
     this._added = false
 
     makeArray(
@@ -472,7 +472,7 @@ class Ignore {
   }
 
   // legacy
-  addPattern (pattern) {
+  addPattern(pattern) {
     return this.add(pattern)
   }
 
@@ -492,12 +492,12 @@ class Ignore {
   //   path matching.
 
   // @returns {TestResult} true if a file is ignored
-  _testOne (path, checkUnignored) {
+  _testOne(path, checkUnignored) {
     let ignored = false
     let unignored = false
 
-    this._rules.forEach(rule => {
-      const {negative} = rule
+    this._rules.forEach((rule) => {
+      const { negative } = rule
       if (
         unignored === negative && ignored !== unignored
         || negative && !ignored && !unignored && !checkUnignored
@@ -520,7 +520,7 @@ class Ignore {
   }
 
   // @returns {TestResult}
-  _test (originalPath, cache, checkUnignored, slices) {
+  _test(originalPath, cache, checkUnignored, slices) {
     const path = originalPath
       // Supports nullable path
       && checkPath.convert(originalPath)
@@ -536,7 +536,7 @@ class Ignore {
     return this._t(path, cache, checkUnignored, slices)
   }
 
-  _t (path, cache, checkUnignored, slices) {
+  _t(path, cache, checkUnignored, slices) {
     if (path in cache) {
       return cache[path]
     }
@@ -569,20 +569,20 @@ class Ignore {
       : this._testOne(path, checkUnignored)
   }
 
-  ignores (path) {
+  ignores(path) {
     return this._test(path, this._ignoreCache, false).ignored
   }
 
-  createFilter () {
+  createFilter() {
     return path => !this.ignores(path)
   }
 
-  filter (paths) {
+  filter(paths) {
     return makeArray(paths).filter(this.createFilter())
   }
 
   // @returns {TestResult}
-  test (path) {
+  test(path) {
     return this._test(path, this._testCache, true)
   }
 }
@@ -612,7 +612,7 @@ if (
 ) {
   /* eslint no-control-regex: "off" */
   const makePosix = str => /^\\\\\?\\/.test(str)
-  || /["<>|\u0000-\u001F]+/u.test(str)
+    || /["<>|\u0000-\u001F]+/u.test(str)
     ? str
     : str.replace(/\\/g, '/')
 

@@ -3,8 +3,8 @@
  * test-pattern-matcher.js - Unit tests for pattern-matcher module
  */
 
-const path = require('path');
-const { loadPatterns, createMatcher, matchPath, DEFAULT_PATTERNS } = require('../pattern-matcher.cjs');
+const path = require('path')
+const { loadPatterns, createMatcher, matchPath, DEFAULT_PATTERNS } = require('../pattern-matcher.cjs')
 
 const tests = [
   // === Basic blocking at root ===
@@ -39,26 +39,27 @@ const tests = [
   { path: 'build-tools/script.sh', expected: false, desc: 'build- prefix in name' },
   { path: 'src/dist-utils.js', expected: false, desc: 'dist- prefix in name' },
   { path: 'nodemodulesbackup/file.js', expected: false, desc: 'node_modules without separator' },
-  { path: 'distro/file.js', expected: false, desc: 'dist prefix without separator' },
-];
+  { path: 'distro/file.js', expected: false, desc: 'dist prefix without separator' }
+]
 
-console.log('Testing pattern-matcher module...\n');
+console.log('Testing pattern-matcher module...\n')
 
-const matcher = createMatcher(DEFAULT_PATTERNS);
-let passed = 0;
-let failed = 0;
+const matcher = createMatcher(DEFAULT_PATTERNS)
+let passed = 0
+let failed = 0
 
 for (const test of tests) {
-  const result = matchPath(matcher, test.path);
-  const success = result.blocked === test.expected;
+  const result = matchPath(matcher, test.path)
+  const success = result.blocked === test.expected
   if (success) {
-    console.log(`\x1b[32m✓\x1b[0m ${test.desc}: ${test.path} -> ${result.blocked ? 'BLOCKED' : 'ALLOWED'}`);
-    passed++;
-  } else {
-    console.log(`\x1b[31m✗\x1b[0m ${test.desc}: expected ${test.expected ? 'BLOCKED' : 'ALLOWED'}, got ${result.blocked ? 'BLOCKED' : 'ALLOWED'}`);
-    failed++;
+    console.log(`\x1b[32m✓\x1b[0m ${test.desc}: ${test.path} -> ${result.blocked ? 'BLOCKED' : 'ALLOWED'}`)
+    passed++
+  }
+  else {
+    console.log(`\x1b[31m✗\x1b[0m ${test.desc}: expected ${test.expected ? 'BLOCKED' : 'ALLOWED'}, got ${result.blocked ? 'BLOCKED' : 'ALLOWED'}`)
+    failed++
   }
 }
 
-console.log(`\nResults: ${passed} passed, ${failed} failed`);
-process.exit(failed > 0 ? 1 : 0);
+console.log(`\nResults: ${passed} passed, ${failed} failed`)
+process.exit(failed > 0 ? 1 : 0)

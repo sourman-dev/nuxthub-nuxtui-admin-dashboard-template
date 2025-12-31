@@ -10,7 +10,8 @@ export const useMockMembers = () => {
       const response = await import('~/data/members.json')
       data.value = response.default as Member[]
       status.value = 'success'
-    } catch (err) {
+    }
+    catch (err) {
       console.error('Failed to load members:', err)
       status.value = 'error'
     }

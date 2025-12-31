@@ -1,4 +1,4 @@
-import type { User, UserStatus } from '~/types'
+import type { User } from '~/types'
 
 export const useMockCustomers = () => {
   const data = ref<User[]>([])
@@ -10,7 +10,8 @@ export const useMockCustomers = () => {
       const response = await import('~/data/customers.json')
       data.value = response.default as User[]
       status.value = 'success'
-    } catch (err) {
+    }
+    catch (err) {
       console.error('Failed to load customers:', err)
       status.value = 'error'
     }

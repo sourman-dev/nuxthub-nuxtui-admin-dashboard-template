@@ -7,10 +7,10 @@
  * are properly blocked in monorepo structures.
  */
 
-const { execSync } = require('child_process');
-const path = require('path');
+const { execSync } = require('child_process')
+const path = require('path')
 
-const hookPath = path.join(__dirname, '..', '..', 'scout-block.cjs');
+const hookPath = path.join(__dirname, '..', '..', 'scout-block.cjs')
 
 const scenarios = [
   // === THE BUG CASES - These MUST be BLOCKED ===
@@ -158,14 +158,14 @@ const scenarios = [
     input: { tool_name: 'Bash', tool_input: { command: 'ls build-tools' } },
     expected: 'ALLOWED',
     desc: 'build- prefix directory'
-  },
-];
+  }
+]
 
-console.log('Testing monorepo scenarios (scout-block integration)...\n');
-console.log('Hook path:', hookPath, '\n');
+console.log('Testing monorepo scenarios (scout-block integration)...\n')
+console.log('Hook path:', hookPath, '\n')
 
-let passed = 0;
-let failed = 0;
+let passed = 0
+let failed = 0
 
 for (const scenario of scenarios) {
   try {
@@ -173,53 +173,57 @@ for (const scenario of scenarios) {
       input: JSON.stringify(scenario.input),
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe']
-    });
+    })
     // Exit 0 = ALLOWED
-    const actual = 'ALLOWED';
-    const success = actual === scenario.expected;
+    const actual = 'ALLOWED'
+    const success = actual === scenario.expected
     if (success) {
-      console.log(`\x1b[32m✓\x1b[0m ${scenario.desc}: ${actual}`);
-      passed++;
-    } else {
-      console.log(`\x1b[31m✗\x1b[0m ${scenario.desc}: expected ${scenario.expected}, got ${actual}`);
-      failed++;
+      console.log(`\x1b[32m✓\x1b[0m ${scenario.desc}: ${actual}`)
+      passed++
     }
-  } catch (error) {
+    else {
+      console.log(`\x1b[31m✗\x1b[0m ${scenario.desc}: expected ${scenario.expected}, got ${actual}`)
+      failed++
+    }
+  }
+  catch (error) {
     // Exit 2 = BLOCKED
-    const actual = error.status === 2 ? 'BLOCKED' : `ERROR(${error.status})`;
-    const success = actual === scenario.expected;
+    const actual = error.status === 2 ? 'BLOCKED' : `ERROR(${error.status})`
+    const success = actual === scenario.expected
     if (success) {
-      console.log(`\x1b[32m✓\x1b[0m ${scenario.desc}: ${actual}`);
-      passed++;
-    } else {
-      console.log(`\x1b[31m✗\x1b[0m ${scenario.desc}: expected ${scenario.expected}, got ${actual}`);
+      console.log(`\x1b[32m✓\x1b[0m ${scenario.desc}: ${actual}`)
+      passed++
+    }
+    else {
+      console.log(`\x1b[31m✗\x1b[0m ${scenario.desc}: expected ${scenario.expected}, got ${actual}`)
       if (error.stderr) {
-        console.log(`  stderr: ${error.stderr.toString().trim().split('\n')[0]}`);
+        console.log(`  stderr: ${error.stderr.toString().trim().split('\n')[0]}`)
       }
-      failed++;
+      failed++
     }
   }
 }
 
-console.log(`\nResults: ${passed} passed, ${failed} failed`);
+console.log(`\nResults: ${passed} passed, ${failed} failed`)
 
 // Highlight if any bug fix cases failed
-const bugFixFailed = scenarios.filter(s => s.desc.includes('[BUG FIX]')).some(s => {
+const bugFixFailed = scenarios.filter(s => s.desc.includes('[BUG FIX]')).some((s) => {
   try {
     execSync(`node "${hookPath}"`, {
       input: JSON.stringify(s.input),
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe']
-    });
-    return s.expected === 'BLOCKED'; // Should have been blocked but wasn't
-  } catch (error) {
-    return error.status !== 2 && s.expected === 'BLOCKED';
+    })
+    return s.expected === 'BLOCKED' // Should have been blocked but wasn't
   }
-});
+  catch (error) {
+    return error.status !== 2 && s.expected === 'BLOCKED'
+  }
+})
 
 if (bugFixFailed) {
-  console.log('\n\x1b[31mWARNING: Some bug fix test cases failed!\x1b[0m');
-  console.log('The subfolder blocking bug has NOT been fixed properly.');
+  console.log('\n\x1b[31mWARNING: Some bug fix test cases failed!\x1b[0m')
+  console.log('The subfolder blocking bug has NOT been fixed properly.')
 }
 
-process.exit(failed > 0 ? 1 : 0);
+process.exit(failed > 0 ? 1 : 0)

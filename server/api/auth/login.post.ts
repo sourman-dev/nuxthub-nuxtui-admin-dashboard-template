@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
+
 export default defineEventHandler(async (event) => {
   const { email, password } = await readBody(event)
 
@@ -19,7 +20,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const isValid = await verifyPassword(user.hashedPassword, password)
+  const isValid = await verifyPassword(user.hashedPassword, (useRuntimeConfig().passwordSalt || '') + password)
 
   if (!isValid) {
     throw createError({
@@ -29,10 +30,10 @@ export default defineEventHandler(async (event) => {
   }
 
   await setUserSession(event, {
-    user: { 
+    user: {
       id: user.id,
       name: user.name,
-      email: user.email,
+      email: user.email
     }
   })
 

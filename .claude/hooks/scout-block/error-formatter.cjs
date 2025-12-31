@@ -6,7 +6,7 @@
  * Supports ANSI colors with NO_COLOR env var respect.
  */
 
-const path = require('path');
+const path = require('path')
 
 // ANSI color codes
 const COLORS = {
@@ -17,7 +17,7 @@ const COLORS = {
   bold: '\x1b[1m',
   dim: '\x1b[2m',
   reset: '\x1b[0m'
-};
+}
 
 /**
  * Check if terminal supports colors
@@ -27,13 +27,13 @@ const COLORS = {
  */
 function supportsColor() {
   // Respect NO_COLOR standard (https://no-color.org/)
-  if (process.env.NO_COLOR !== undefined) return false;
+  if (process.env.NO_COLOR !== undefined) return false
 
   // Respect FORCE_COLOR
-  if (process.env.FORCE_COLOR !== undefined) return true;
+  if (process.env.FORCE_COLOR !== undefined) return true
 
   // Check if stderr is TTY (we output errors to stderr)
-  return process.stderr.isTTY || false;
+  return process.stderr.isTTY || false
 }
 
 /**
@@ -44,9 +44,9 @@ function supportsColor() {
  * @returns {string}
  */
 function colorize(text, color) {
-  if (!supportsColor()) return text;
-  const colorCode = COLORS[color] || '';
-  return `${colorCode}${text}${COLORS.reset}`;
+  if (!supportsColor()) return text
+  const colorCode = COLORS[color] || ''
+  return `${colorCode}${text}${COLORS.reset}`
 }
 
 /**
@@ -57,9 +57,9 @@ function colorize(text, color) {
  */
 function formatConfigPath(claudeDir) {
   if (claudeDir) {
-    return path.join(claudeDir, '.ckignore');
+    return path.join(claudeDir, '.ckignore')
   }
-  return '.claude/.ckignore';
+  return '.claude/.ckignore'
 }
 
 /**
@@ -75,13 +75,13 @@ function formatConfigPath(claudeDir) {
  * @returns {string}
  */
 function formatBlockedError(details) {
-  const { path: blockedPath, pattern, tool, claudeDir } = details;
-  const configPath = formatConfigPath(claudeDir);
+  const { path: blockedPath, pattern, tool, claudeDir } = details
+  const configPath = formatConfigPath(claudeDir)
 
   // Truncate path if too long
   const displayPath = blockedPath.length > 60
     ? '...' + blockedPath.slice(-57)
-    : blockedPath;
+    : blockedPath
 
   const lines = [
     '',
@@ -97,9 +97,9 @@ function formatBlockedError(details) {
     '',
     `  ${colorize('Config:', 'dim')} ${configPath}`,
     ''
-  ];
+  ]
 
-  return lines.join('\n');
+  return lines.join('\n')
 }
 
 /**
@@ -110,7 +110,7 @@ function formatBlockedError(details) {
  * @returns {string}
  */
 function formatSimpleError(pattern, blockedPath) {
-  return `ERROR: Blocked pattern '${pattern}' matched path: ${blockedPath}`;
+  return `ERROR: Blocked pattern '${pattern}' matched path: ${blockedPath}`
 }
 
 /**
@@ -121,8 +121,8 @@ function formatSimpleError(pattern, blockedPath) {
  * @returns {string}
  */
 function formatMachineError(details) {
-  const { path: blockedPath, pattern, tool, claudeDir } = details;
-  const configPath = formatConfigPath(claudeDir);
+  const { path: blockedPath, pattern, tool, claudeDir } = details
+  const configPath = formatConfigPath(claudeDir)
 
   return JSON.stringify({
     error: 'BLOCKED',
@@ -131,7 +131,7 @@ function formatMachineError(details) {
     tool: tool,
     config: configPath,
     fix: `Add '!${pattern}' to ${configPath} to allow this path`
-  });
+  })
 }
 
 /**
@@ -141,7 +141,7 @@ function formatMachineError(details) {
  * @returns {string}
  */
 function formatWarning(message) {
-  return colorize('WARN:', 'yellow') + ' ' + message;
+  return colorize('WARN:', 'yellow') + ' ' + message
 }
 
 module.exports = {
@@ -153,4 +153,4 @@ module.exports = {
   supportsColor,
   colorize,
   COLORS
-};
+}
