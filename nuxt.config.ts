@@ -18,6 +18,20 @@ export default defineNuxtConfig({
   css: ['~/assets/main.css'],
   runtimeConfig: {
     passwordSalt: process.env.NUXT_PASSWORD_SALT,
+    llm: {
+      text: {
+        provider: process.env.NUXT_LLM_TEXT_PROVIDER,
+        baseUrl: process.env.NUXT_LLM_TEXT_BASE_URL,
+        apiKey: process.env.NUXT_LLM_TEXT_API_KEY,
+        model: process.env.NUXT_LLM_TEXT_MODEL
+      },
+      image: {
+        provider: process.env.NUXT_LLM_IMAGE_PROVIDER,
+        baseUrl: process.env.NUXT_LLM_IMAGE_BASE_URL,
+        apiKey: process.env.NUXT_LLM_IMAGE_API_KEY,
+        model: process.env.NUXT_LLM_IMAGE_MODEL
+      }
+    },
     public: {
       apiBase: '/api'
     }
